@@ -1,13 +1,40 @@
 <main>
-    <div class="flex-col justify-items-center mt-12">
-        <div>
-            <div><a routerLink="generic" class="btn btn-xl btn-primary btn-block mb-2">Generic Score Keeper</a></div>
-            <div><button routerLink="farkle" class="btn btn-xl btn-primary btn-block mb-2">Farkle</button></div>
-            <div><button disabled class="btn btn-xl btn-primary btn-block mb-2">Cascadia</button></div>
-            <div><button disabled class="btn btn-xl btn-primary btn-block mb-2">Skull King</button></div>
-            <div><a routerLink="settings" class="btn btn-xl btn-secondary btn-block">
-                Home Assistant Setup
-            </a></div>
+    <div role="alert" class="alert mb-5">
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-info h-6 w-6 shrink-0">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+  </svg>
+  <span>Welcome to Game Night Assistant! Pick a game below to start keeping score. If you want to trigger your Home Assistant scripts based on game events 
+    (like when a certain score is reached, a player is eliminated or a game-specific event happens), click the <strong>Script settings</strong> button at the bottom of the screen to
+    choose your scripts.
+  </span>
+</div>
+
+    <div class="flex flex-wrap justify-center gap-5">
+        <div class="card card-border bg-base-100 w-96">
+            <div class="card-body">
+                <h2 class="card-title border-b-2">Generic Score Keeper</h2>
+                <p>Records a list of players and their scores. Trigger options include running scripts when a certain score is reached,
+                    when a player is removed from the game, and when a player scores zero. Ideal for general score-keeping and helping to run quiz night.
+                </p>
+                <div class="card-actions justify-end">
+                    <button class="btn btn-primary" routerLink="generic">Play</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="card card-border bg-base-100 w-96">
+            <div class="card-body">
+                <h2 class="card-title border-b-2">Farkle</h2>
+                <p>Throw six dice, aim for 1s, 5s, or scoring combinations... and keep rolling for as long as you dare!
+                    Let Home Assistant scripts celebrate moments like 6-of-a-kind and three-pairs, whilst commiserating
+                    over dreaded farkles.</p>
+                <div class="card-actions justify-end">
+                    <button class="btn btn-primary" routerLink="farkle">Play</button>
+                </div>
+            </div>
         </div>
     </div>
 </main>
+
+<app-dock [showHomeButton]="false" [showLogButton]="false" [showReloadButton]="false" [showSettingsButton]="false"
+(scriptSettingsRequested)="showScriptSettings()"></app-dock>
