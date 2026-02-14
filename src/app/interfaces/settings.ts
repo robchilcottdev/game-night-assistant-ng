@@ -1,0 +1,30 @@
+import { AvailableTriggersFarkle } from "./enums"
+
+export interface IScriptTrigger {
+    id: string,
+    trigger: AvailableTriggersFarkle,
+    script: string
+}
+
+export interface ISettings {
+    allowNegativeScores: boolean,
+    autoAdvanceOnScoreUpdate: boolean,
+    autoOpenEditScoreOnAdvance: boolean
+}
+
+export interface ISettingsFarkle extends ISettings {
+    targetScore: number,
+    minimumPointsToStart: number,
+    threeFarklePenalty: number
+}
+
+
+export interface ISettingsGeneric extends ISettings {
+    
+}
+
+export enum SettingsType {
+    Generic,
+    Farkle
+}
+

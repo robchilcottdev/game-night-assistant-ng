@@ -1,0 +1,461 @@
+<main>
+    <div class="p-2">
+        <span class="float-right">
+            <button (click)="showInfo()" class="btn btn-ghost">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                    stroke="currentColor" class="size-8">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
+                </svg>
+            </button>
+
+        </span>
+        <h1 class="text-xl">Generic Score Keeper</h1>
+    </div>
+
+    <div class="flex-row m-2">
+        <button (click)="addPlayer()" class="btn btn-primary m-1">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                stroke="currentColor" class="size-6">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+            </svg>
+        </button>
+        <button (click)="randomiseTurn()" [disabled]="players().length < 2" class="btn m-1">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                stroke="currentColor" class="size-6">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M19.5 12c0-1.232-.046-2.453-.138-3.662a4.006 4.006 0 0 0-3.7-3.7 48.678 48.678 0 0 0-7.324 0 4.006 4.006 0 0 0-3.7 3.7c-.017.22-.032.441-.046.662M19.5 12l3-3m-3 3-3-3m-12 3c0 1.232.046 2.453.138 3.662a4.006 4.006 0 0 0 3.7 3.7 48.656 48.656 0 0 0 7.324 0 4.006 4.006 0 0 0 3.7-3.7c.017-.22.032-.441.046-.662M4.5 12l3 3m-3-3-3 3" />
+            </svg>
+        </button>
+        <button (click)="changeDirection()" [disabled]="players().length < 2" class="btn m-1 uppercase">
+            @if (playDirectionText() === "clockwise") {
+            <span class='text-sm uppercase'>direction</span>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                stroke="currentColor" class="size-6">
+                <path stroke-linecap="round" stroke-linejoin="round" d="m15 15 6-6m0 0-6-6m6 6H9a6 6 0 0 0 0 12h3" />
+            </svg>
+            }
+            @else {
+            <span class='text-sm uppercase'>direction</span>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                stroke="currentColor" class="size-6">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3" />
+            </svg>
+            }
+        </button>
+        <button (click)="advanceTurn()" [disabled]="players().length < 2" class="btn m-1">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                stroke="currentColor" class="size-6">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M3 8.689c0-.864.933-1.406 1.683-.977l7.108 4.061a1.125 1.125 0 0 1 0 1.954l-7.108 4.061A1.125 1.125 0 0 1 3 16.811V8.69ZM12.75 8.689c0-.864.933-1.406 1.683-.977l7.108 4.061a1.125 1.125 0 0 1 0 1.954l-7.108 4.061a1.125 1.125 0 0 1-1.683-.977V8.69Z" />
+            </svg>
+        </button>
+        <button (click)="showLeaderboard()" [disabled]="players().length < 2"
+            class="btn btn-outline uppercase">Leaderboard</button>
+        <button (click)="resetScores()" class="btn btn-error m-1 uppercase">reset</button>
+    </div>
+
+    <div id="scoreboard" class="overflow-x-auto">
+        <table class="table table-zebra text-lg">
+            <thead>
+                <tr>
+                    <th>Player name</th>
+                    <th>Score</th>
+                </tr>
+            </thead>
+            <tbody>
+                @for (player of players(); track player.Id) {
+                <tr class="{{ players()[currentPlayerIndex()].Id === player.Id ? 'bg-accent' : ''}}">
+                    <td>
+                        <span class="inline-block">
+                            @if (player.IsStartingPlayer) {
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                                stroke="currentColor" class="size-6">
+                                <circle cx="12" cy="9" r="7.5" stroke-linecap="round" stroke-linejoin="round" />
+
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M11 8.5 12 7.5v5" />
+
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="m9 15.5-1.5 5.25 4.5-1.5 4.5 1.5-1.5-5.25" />
+                            </svg>
+                            }
+                        </span>
+                        <span (click)="selectPlayer(player.Id)"
+                            class="{{ !player.Active ? 'line-through text-gray-500':'' }} hover:cursor-pointer mr-2">{{player.Name}}</span>
+                        <button (click)="editName(player.Id)" class="btn btn-xs mr-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                                stroke="currentColor" class="size-6">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                            </svg>
+                        </button>
+                        <button (click)="deletePlayer(player.Id)" class="btn btn-xs mr-2">
+                            @if (player.Active) {
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                                stroke="currentColor" class="size-6">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M22 10.5h-6m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM4 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 10.374 21c-2.331 0-4.512-.645-6.374-1.766Z" />
+                            </svg>
+                            }
+                            @else {
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                                stroke="currentColor" class="size-6">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z" />
+                            </svg>
+                            }
+                        </button>
+                    </td>
+                    <td><span class="{{ !player.Active ? 'text-gray-500':'' }}">{{player.Score}}</span>
+                        <button (click)="editScore(player.Id)" class="btn btn-xs ml-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                                stroke="currentColor" class="size-6">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                            </svg>
+                        </button>
+                    </td>
+                </tr>
+                } @empty {
+                <tr>
+                    <td></td>
+                    <td>Add player above</td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</main>
+
+<app-dock (reloadRequested)="doReload()" (settingsRequested)="showSettings()" (infoRequested)="showInfo()"
+    (logRequested)="showLog()"></app-dock>
+
+<dialog #dialogInfo class="modal">
+    <div class="modal-box">
+        <h2 class="text-lg border-b-2 mb-1">Welcome to Generic Score Keeper</h2>
+        
+        <p class="mt-2 mb-2 text-neutral-600">
+            Perfect for when the only thing you need to keep is... uh... the score.
+        </p>
+        <div class="flex mb-2">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="white"
+                class="size-6 bg-primary w-10 mr-1">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+            </svg><span class="text-sm w-90"><strong>Add a player</strong> by name</span>
+        </div>
+
+        <div class="flex mb-2">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                stroke="currentColor" class="size-6 w-10 mr-1">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M19.5 12c0-1.232-.046-2.453-.138-3.662a4.006 4.006 0 0 0-3.7-3.7 48.678 48.678 0 0 0-7.324 0 4.006 4.006 0 0 0-3.7 3.7c-.017.22-.032.441-.046.662M19.5 12l3-3m-3 3-3-3m-12 3c0 1.232.046 2.453.138 3.662a4.006 4.006 0 0 0 3.7 3.7 48.656 48.656 0 0 0 7.324 0 4.006 4.006 0 0 0 3.7-3.7c.017-.22.032-.441.046-.662M4.5 12l3 3m-3-3-3 3" />
+            </svg><span class="text-sm w-90">Pick random <strong>starting player</strong>. They get a cool
+                <span> <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                        stroke="currentColor" class="size-4 inline-block">
+                        <circle cx="12" cy="9" r="7.5" stroke-linecap="round" stroke-linejoin="round" />
+
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M11 8.5 12 7.5v5" />
+
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="m9 15.5-1.5 5.25 4.5-1.5 4.5 1.5-1.5-5.25" />
+                    </svg></span>badge!</span>
+        </div>
+
+        <div class="flex mb-2">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                stroke="currentColor" class="size-6 w-10 mr-1">
+                <path stroke-linecap="round" stroke-linejoin="round" d="m15 15 6-6m0 0-6-6m6 6H9a6 6 0 0 0 0 12h3" />
+            </svg><span class="text-sm w-90">Toggle <strong>direction of play</strong> between
+                <strong>clockwise</strong>
+                <span> <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                        stroke="currentColor" class="size-4 inline-block">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="m15 15 6-6m0 0-6-6m6 6H9a6 6 0 0 0 0 12h3" />
+                    </svg></span> and <strong>anti-clockwise</strong>
+                <span>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                        stroke="currentColor" class="size-4 inline-block">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3" />
+                    </svg>
+                </span>. If clockwise, the current player highlight moves downwards; if anti-clockwise, it moves
+                upwards.</span>
+        </div>
+
+        <div class="flex mb-2">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                stroke="currentColor" class="size-6 w-10 mr-1">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M3 8.689c0-.864.933-1.406 1.683-.977l7.108 4.061a1.125 1.125 0 0 1 0 1.954l-7.108 4.061A1.125 1.125 0 0 1 3 16.811V8.69ZM12.75 8.689c0-.864.933-1.406 1.683-.977l7.108 4.061a1.125 1.125 0 0 1 0 1.954l-7.108 4.061a1.125 1.125 0 0 1-1.683-.977V8.69Z" />
+            </svg><span class="text-sm w-90"><strong>Advance</strong> to next player's turn (up or down - see
+                "direction" above)</span>
+        </div>
+
+
+        <div class="flex mb-2">
+            <button class="btn btn-error m-1 hover:pointer-none uppercase">reset</button><span
+                class="text-sm w-90">Reset the <strong>scores</strong>, but keep the same list of players</span>
+        </div>
+
+        <div class="flex mb-2">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                stroke="currentColor" class="size-6 w-10 mr-1">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                    d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+            </svg><span class="text-sm w-90">Next to <strong>score</strong>: edit this player's score. You can either
+                enter it directly, or set an amount and click to add or subtract it.
+                Next to <strong>player</strong>: Edit the player's name. You can also make them the <strong>starting
+                    player</strong>
+                here.</span>
+        </div>
+
+        <div class="flex mb-2">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                stroke="currentColor" class="size-6 w-10 mr-1">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M22 10.5h-6m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM4 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 10.374 21c-2.331 0-4.512-.645-6.374-1.766Z" />
+            </svg>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                stroke="currentColor" class="size-6 w-10 mr-1">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z" />
+            </svg>
+            <span class="text-sm w-80"><strong>Remove player</strong> from the game / <strong>re-add</strong> them. When
+                removed, the <strong>Advance</strong> button will simply skip over them, regardless of play
+                direction.</span>
+        </div>
+
+
+        <form method="dialog">
+            <button class="btn btn-outline mt-2 w-full">Close</button>
+        </form>
+    </div>
+</dialog>
+
+<dialog #dialogAddPlayer class="modal">
+    <div class="modal-box">
+        <div class="flex-col">
+            <input #inputAddName placeholder="Player name" value="" (keyup.enter)="confirmAddPlayer()"
+                class="input w-full" />
+            <button (click)="confirmAddPlayer()" class="btn btn-primary mt-2 w-full">
+                Confirm
+            </button>
+            <form method="dialog">
+                <button class="btn btn-outline mt-2 w-full">Close</button>
+            </form>
+        </div>
+    </div>
+</dialog>
+
+<dialog #dialogEditName class="modal">
+    <div class="modal-box">
+        <div class="flex-col">
+            <input #inputEditName placeholder="Enter player name" value="{{ selectedPlayer()?.Name ?? '' }}"
+                class="input w-full" />
+
+            @if (!selectedPlayer()?.IsStartingPlayer) {
+            <button (click)="setStartingPlayer(selectedPlayer()!.Id)" class="btn btn-secondary mt-2 w-full">Make
+                starting player</button>
+            }
+
+            <button (click)="confirmEditName()" class="btn btn-primary mt-2 w-full">
+                Confirm
+            </button>
+            <form method="dialog">
+                <button class="btn btn-outline mt-2 w-full">Close</button>
+            </form>
+        </div>
+    </div>
+</dialog>
+
+<dialog #dialogEditScore class="modal">
+    <div class="modal-box">
+        <h3 class="text-lg font-bold mb-2">Set score for {{ selectedPlayer()?.Name ?? "" }}</h3>
+        <input #inputEditedScore type="number" [(ngModel)]="currentEditedPlayerScore" (keyup.enter)="confirmEditScore()"
+            class="input mb-2 w-full" />
+
+        <div class="flex">
+            <div class="text-sm mr-2">Modify by</div>
+            <input #inputModifyScoreAmount type="number" min="0" [(ngModel)]="modifyScoreAmount" class="input mr-2" />
+            <button (click)="incrementScore()" class="btn bg-success">+</button>
+            <button (click)="decrementScore()" class="btn bg-error">-</button>
+        </div>
+        <div class="text-xs mt-2 mb-2">
+            Unmodified score: {{ selectedPlayer()?.Score }}
+        </div>
+        <div class="flex justify-end gap-1 mt-2">
+            <button (click)="confirmEditScore()" class="btn btn-primary">
+                Confirm
+            </button>
+            <form method="dialog">
+                <button class="btn">Close</button>
+            </form>
+        </div>
+
+    </div>
+</dialog>
+
+<dialog #dialogSettings class="modal">
+    <div class="modal-box">
+        <h2 class="text-lg border-b-2 mb-1">Settings</h2>
+        <div class="flex-col">
+            <div>
+                <div class="text-xs mb-1">Starting score (handy if you want scores to count
+                    <strong>down</strong>).
+                </div>
+                <input type="number" id="startingScore" min="0" class="input input-xs mb-2"
+                    [(ngModel)]="startingScore" />
+            </div>
+            <div>
+                <input type="checkbox" id="allowNegativeScores" class="checkbox-neutral"
+                    [(ngModel)]="allowNegativeScores" />
+                <label for="allowNegativeScores" class="label text-xs m-1">Allow negative scores</label>
+            </div>
+            <div>
+                <input type="checkbox" id="autoAdvanceOnScoreUpdate" class="checkbox-neutral"
+                    [(ngModel)]="autoAdvanceOnScoreUpdate" />
+                <label for="autoAdvanceOnScoreUpdate" class="label text-xs m-1">Auto-advance turn on score
+                    update</label>
+            </div>
+            <div>
+                <input type="checkbox" id="autoOpenEditScoreOnAdvance" class="checkbox-neutral"
+                    [(ngModel)]="autoOpenEditScoreOnAdvance" />
+                <label for="autoOpenEditScoreOnAdvance" class="label text-xs m-1">Open Edit Score on turn
+                    advance</label>
+            </div>
+
+            <div>
+                <input type="checkbox" id="runScriptWhenFirstPlayerSelected" class="checkbox-neutral"
+                    [(ngModel)]="runScriptWhenFirstPlayerSelected" />
+                <label for="runScriptWhenFirstPlayerSelected" class="label text-xs m-1">Run script when first player
+                    selected</label>
+                @if (runScriptWhenFirstPlayerSelected()){
+                <div class="flex justify-evenly mt-1">
+                    <select [(ngModel)]="runScriptWhenFirstPlayerSelectedEntityId" class="select select-xs w-full">
+                        @for (availableScript of availableScripts; track $index) {
+                        <option value="{{availableScript.EntityId}}">{{ availableScript.Name }}</option>
+                        }
+                    </select>
+                </div>
+                }
+            </div>
+
+            <div>
+                <input type="checkbox" id="runScriptOnSetScore" class="checkbox-neutral"
+                    [(ngModel)]="runScriptOnSetScore" />
+                <label for="runScriptOnSetScore" class="label text-xs m-1">Run script when target score
+                    reached</label>
+                @if (runScriptOnSetScore()){
+                <div class="flex flex-col mt-1">
+                    <input type="number" id="runScriptOnSetScoreAmount" [(ngModel)]="runScriptOnSetScoreAmount"
+                        class="input input-xs w-full mb-1" />
+                    <select [(ngModel)]="runScriptOnSetScoreEntityId" class="select select-xs w-full">
+                        @for (availableScript of availableScripts; track $index) {
+                        <option value="{{availableScript.EntityId}}">{{ availableScript.Name }}</option>
+                        }
+                    </select>
+                </div>
+                }
+            </div>
+            <div>
+                <input type="checkbox" id="runScriptOnIncreasedScore" class="checkbox-neutral"
+                    [(ngModel)]="runScriptOnIncreasedScore" />
+                <label for="runScriptOnIncreasedScore" class="label text-xs m-1">Run script when score increases</label>
+                @if (runScriptOnIncreasedScore()){
+                <div class="flex justify-evenly mt-1">
+                    <select [(ngModel)]="runScriptOnIncreasedScoreEntityId" class="select select-xs w-full">
+                        @for (availableScript of availableScripts; track $index) {
+                        <option value="{{availableScript.EntityId}}">{{ availableScript.Name }}</option>
+                        }
+                    </select>
+                </div>
+                }
+            </div>
+            <div>
+                <input type="checkbox" id="runScriptOnReducedScore" class="checkbox-neutral"
+                    [(ngModel)]="runScriptOnReducedScore" />
+                <label for="runScriptOnReducedScore" class="label text-xs m-1">Run script when score decreases</label>
+                @if (runScriptOnReducedScore()){
+                <div class="flex justify-evenly mt-1">
+                    <select [(ngModel)]="runScriptOnReducedScoreEntityId" class="select select-xs w-full">
+                        @for (availableScript of availableScripts; track $index) {
+                        <option value="{{availableScript.EntityId}}">{{ availableScript.Name }}</option>
+                        }
+                    </select>
+                </div>
+                }
+            </div>
+            <div>
+                <input type="checkbox" id="runScriptOnNoScore" class="checkbox-neutral"
+                    [(ngModel)]="runScriptOnNoScore" />
+                <label for="runScriptOnNoScore" class="label text-xs m-1">Run script when nothing (0) is scored</label>
+                @if (runScriptOnNoScore()){
+                <div class="flex justify-evenly mt-1">
+                    <select [(ngModel)]="runScriptOnNoScoreEntityId" class="select select-xs w-full">
+                        @for (availableScript of availableScripts; track $index) {
+                        <option value="{{availableScript.EntityId}}">{{ availableScript.Name }}</option>
+                        }
+                    </select>
+                </div>
+                }
+            </div>
+            <div>
+                <input type="checkbox" id="runScriptOnPlayerRemoved" class="checkbox-neutral"
+                    [(ngModel)]="runScriptOnPlayerRemoved" />
+                <label for="runScriptOnPlayerRemoved" class="label text-xs m-1">Run script when a player is
+                    removed</label>
+                @if (runScriptOnPlayerRemoved()){
+                <div class="flex justify-evenly mt-1">
+                    <select [(ngModel)]="runScriptOnPlayerRemovedEntityId" class="select select-xs w-full">
+                        @for (availableScript of availableScripts; track $index) {
+                        <option value="{{availableScript.EntityId}}">{{ availableScript.Name }}</option>
+                        }
+                    </select>
+                </div>
+                }
+            </div>
+            <form method="dialog">
+                <button class="btn btn-outline mt-2 w-full">Close</button>
+            </form>
+        </div>
+    </div>
+</dialog>
+
+<dialog #dialogLog class="modal">
+    <div class="modal-box">
+        <h2 class="text-lg border-b-2 mb-1">Game log</h2>
+        <button (click)="clearLog()" class="btn btn-xs btn-neutral uppercase float-right">clear log</button>
+        @for (item of this.log; track $index) {
+        <span>{{item.DateStamp | date:'shortTime'}}</span>: <span>{{item.Text}}</span><br />
+        }
+        <form method="dialog">
+            <button class="btn btn-outline mt-2 w-full">Close</button>
+        </form>
+    </div>
+</dialog>
+
+<dialog #dialogLeaderboard class="modal">
+    <div class="modal-box">
+        <div class="flex-col">
+            <p>
+                @for (player of getPlayersByScoreDescending(); track $index) {
+                @if($index === 0) {
+            <div>{{$index + 1}}. <strong>{{player.Name}}</strong> {{player.Score}}</div>
+            } @else {
+            <div>{{$index + 1}}. <strong>{{player.Name}}</strong> {{player.Score}}
+                <span class="text-neutral-300">({{ getPlayersByScoreDescending()[0].Score - player.Score }} from
+                    leader)</span>
+            </div>
+            }
+            }
+            </p>
+            <form method="dialog">
+                <button class="btn btn-outline mt-2 w-full">Close</button>
+            </form>
+        </div>
+    </div>
+</dialog>

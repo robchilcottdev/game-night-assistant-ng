@@ -1,0 +1,474 @@
+<main>
+    <div class="p-2">
+        <span class="float-right">
+            <button (click)="showInfo()" class="btn btn-ghost">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                    stroke="currentColor" class="size-8">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
+                </svg>
+            </button>
+
+        </span>
+        <h1 class="text-xl">Farkle</h1>
+        <div class="flex-row m-2">
+            <button (click)="addPlayer()" class="btn btn-primary m-1">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                    stroke="currentColor" class="size-6">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                </svg>
+            </button>
+            <button (click)="randomiseTurn()" [disabled]="players().length < 2" class="btn m-1">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                    stroke="currentColor" class="size-6">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M19.5 12c0-1.232-.046-2.453-.138-3.662a4.006 4.006 0 0 0-3.7-3.7 48.678 48.678 0 0 0-7.324 0 4.006 4.006 0 0 0-3.7 3.7c-.017.22-.032.441-.046.662M19.5 12l3-3m-3 3-3-3m-12 3c0 1.232.046 2.453.138 3.662a4.006 4.006 0 0 0 3.7 3.7 48.656 48.656 0 0 0 7.324 0 4.006 4.006 0 0 0 3.7-3.7c.017-.22.032-.441.046-.662M4.5 12l3 3m-3-3-3 3" />
+                </svg>
+            </button>
+            <button (click)="advanceTurn()" [disabled]="players().length < 2" class="btn m-1">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                    stroke="currentColor" class="size-6">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M3 8.689c0-.864.933-1.406 1.683-.977l7.108 4.061a1.125 1.125 0 0 1 0 1.954l-7.108 4.061A1.125 1.125 0 0 1 3 16.811V8.69ZM12.75 8.689c0-.864.933-1.406 1.683-.977l7.108 4.061a1.125 1.125 0 0 1 0 1.954l-7.108 4.061a1.125 1.125 0 0 1-1.683-.977V8.69Z" />
+                </svg>
+            </button>
+            <button (click)="resetScores()" class="btn btn-error m-1 uppercase">reset</button>
+        </div>
+    </div>
+
+    <div id="scoreboard" class="overflow-x-auto">
+        <table class="table table-zebra text-lg">
+            <thead>
+                <tr>
+                    <th>Player name</th>
+                    <th>Score</th>
+                    <th>Farkles</th>
+                </tr>
+            </thead>
+            <tbody>
+                @for (player of players(); track player.Id) {
+                <tr class="{{ players()[currentPlayerIndex()].Id === player.Id ? 'bg-accent' : ''}}">
+                    <td>
+                        <span class="inline-block">
+                            @if (player.IsStartingPlayer) {
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                                stroke="currentColor" class="size-6">
+                                <circle cx="12" cy="9" r="7.5" stroke-linecap="round" stroke-linejoin="round" />
+
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M11 8.5 12 7.5v5" />
+
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="m9 15.5-1.5 5.25 4.5-1.5 4.5 1.5-1.5-5.25" />
+                            </svg>
+                            }
+                        </span>
+                        <span
+                            class="{{ player.Score > settings.targetScore ? 'font-extrabold':'' }} mr-2">{{player.Name}}</span>
+                        <button (click)="editName(player.Id)" class="btn btn-xs mr-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                                stroke="currentColor" class="size-6">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                            </svg>
+                        </button>
+                    </td>
+                    <td><span
+                            class="{{ player.Score > settings.targetScore ? 'font-extrabold':'' }} mr-2">{{player.Score}}</span>
+                        <button (click)="editScore(player.Id)" class="btn btn-xs ml-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                                stroke="currentColor" class="size-6">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                            </svg>
+                        </button>
+                    </td>
+                    <td>
+                        @if(player.Farkles! > 0){
+                        <div class="status status-warning"></div>
+                        }
+                        @if(player.Farkles! > 1){
+                        <div class="status status-error animate-ping ml-2"></div>
+                        }
+                    </td>
+                </tr>
+                } @empty {
+                <tr>
+                    <td></td>
+                    <td>Add player above</td>
+                    <td></td>
+                </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</main>
+
+<app-dock (reloadRequested)="doReload()" (settingsRequested)="showSettings()" (scriptSettingsRequested)="showScriptSettings()" (logRequested)="showLog()"></app-dock>
+
+<dialog #dialogInfo class="modal">
+    <div class="modal-box">
+        <h2 class="text-lg border-b-2 mb-1">Welcome to Farkle</h2>
+        <p class="mt-2 mb-2 text-neutral-600">
+            Helps you keep score while pushing your luck - doesn't promise to improve your dice rolling.
+        </p>
+        <form method="dialog">
+            <button class="btn btn-outline mt-2 w-full">Close</button>
+        </form>
+    </div>
+</dialog>
+
+<dialog #dialogLog class="modal">
+    <div class="modal-box">
+        <h2 class="text-lg border-b-2 mb-1">Game log</h2>
+        <button (click)="clearLog()" class="btn btn-xs btn-neutral uppercase float-right">clear log</button>
+        @for (item of this.log; track $index) {
+        <span>{{item.DateStamp | date:'shortTime'}}</span>: <span>{{item.Text}}</span><br />
+        }
+        <form method="dialog">
+            <button class="btn btn-outline mt-2 w-full">Close</button>
+        </form>
+    </div>
+</dialog>
+
+<dialog #dialogSettings class="modal">
+    <div class="modal-box">
+        <h2 class="text-lg border-b-2 mb-1">Game options</h2>
+        <div class="flex align-middle gap-2 flex-wrap">
+            <div class="text-xs mb-1">Target score
+            </div>
+            <input type="number" id="targetScore" min="0" class="input input-xs mb-2"
+                [(ngModel)]="settings.targetScore" />
+        </div>
+        <div class="flex align-middle gap-2 flex-wrap">
+            <div class="text-xs mb-1">Minimum points to start
+            </div>
+            <input type="number" id="minimumPointsToStart" min="0" class="input input-xs mb-2"
+                [(ngModel)]="settings.minimumPointsToStart" />
+        </div>
+        <div class="flex align-middle gap-2 flex-wrap">
+            <div class="text-xs mb-1">Penalty for 3 consecutive Farkles
+            </div>
+            <input type="number" id="threeFarklePenalty" min="0" class="input input-xs mb-2"
+                [(ngModel)]="settings.threeFarklePenalty" />
+        </div>
+        <div class="flex align-middle gap-2 flex-wrap">
+            <input type="checkbox" id="allowNegativeScores" class="checkbox-neutral"
+                [(ngModel)]="settings.allowNegativeScores" />
+            <label for="allowNegativeScores" class="label text-xs m-1">Allow negative scores</label>
+        </div>
+        <div class="flex align-middle gap-2 flex-wrap">
+            <input type="checkbox" id="autoAdvanceOnScoreUpdate" class="checkbox-neutral"
+                [(ngModel)]="settings.autoAdvanceOnScoreUpdate" />
+            <label for="autoAdvanceOnScoreUpdate" class="label text-xs m-1">Auto-advance turn on score
+                update</label>
+        </div>
+        <div class="flex align-middle gap-2 flex-wrap">
+            <input type="checkbox" id="autoOpenEditScoreOnAdvance" class="checkbox-neutral"
+                [(ngModel)]="settings.autoOpenEditScoreOnAdvance" />
+            <label for="autoOpenEditScoreOnAdvance" class="label text-xs m-1">Open Edit Score on turn
+                advance</label>
+        </div>
+        
+        <div class="flex justify-between mt-2">
+            <button (click)="resetSettings()" class="btn btn-warning">Reset to defaults</button>
+            <button (click)="saveSettings()" class="btn btn-primary">Close</button>
+        </div>
+        <form method="dialog"></form>
+    </div>
+</dialog>
+
+<dialog #dialogScriptSettings class="modal">
+    <div class="modal-box">
+        <h2 class="text-lg border-b-2 mb-1">Script settings</h2>
+        <table class="table">
+            <tbody>
+                @for (trigger of this.triggers(); track $index) {
+                <tr class="table-row table-zebra">
+                    <td>
+                        <div class="flex gap-1">
+                            <button (click)="deleteTrigger(trigger.id)" class="btn btn-error btn-xs mr-1">x</button>
+                            <div><strong>{{ trigger.trigger }}</strong></div>
+                        </div>
+                        <div>{{ trigger.script }}</div>
+                    </td>
+                </tr>
+                }
+            </tbody>
+        </table>
+        <h4>Add trigger</h4>
+        <div class="flex align-middle gap-2 flex-wrap text-xs">
+            <select id="availableTriggers" [(ngModel)]="newTrigger" class="select select-xs">
+                <option value="" disabled hidden>{{ 'Select a trigger' }}</option>
+                @for (trigger of availableTriggersDropdown(); track $index) {
+                <option [value]="trigger.Value">{{trigger.Text}}</option>
+                }
+            </select>                    
+            <select id="availableScripts" [(ngModel)]="newTriggerScript" class="select select-xs">
+                <option value="" disabled hidden>{{ 'Select a script' }}</option>
+                @for (script of availableScripts; track $index) {
+                <option [value]="script.EntityId">{{script.Name}}</option>
+                }
+            </select>
+            <button (click)="addTrigger()" [disabled]="!newTrigger() || !newTriggerScript()"
+                class="btn btn-success btn-xs">
+                + Confirm
+            </button>
+
+            @if (duplicateTriggerWarning()) {
+            <div role="alert" class="alert alert-error">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 shrink-0 stroke-current" fill="none"
+                    viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>Trigger for this event already exists</span>
+            </div>
+            }
+        </div>
+
+        <div class="flex justify-between mt-2">
+            <button (click)="saveTriggers()" class="btn btn-primary">Close</button>
+        </div>
+
+        <form method="dialog"></form>
+    </div>
+</dialog>
+
+
+<dialog #dialogAddPlayer class="modal">
+    <div class="modal-box">
+        <div class="flex-col">
+            <input #inputAddName placeholder="Player name" value="" (keyup.enter)="confirmAddPlayer()"
+                class="input w-full" />
+            <button (click)="confirmAddPlayer()" class="btn btn-primary mt-2 w-full">
+                Confirm
+            </button>
+            <form method="dialog">
+                <button class="btn btn-outline mt-2 w-full">Close</button>
+            </form>
+        </div>
+    </div>
+</dialog>
+
+<dialog #dialogEditName class="modal">
+    <div class="modal-box">
+        <div class="flex-col">
+            <input #inputEditName placeholder="Enter player name" value="{{ selectedPlayer()?.Name ?? '' }}"
+                class="input w-full" />
+
+            @if (!selectedPlayer()?.IsStartingPlayer) {
+            <button (click)="setStartingPlayer(selectedPlayer()!.Id)" class="btn btn-secondary mt-2 w-full">Make
+                starting player</button>
+            }
+
+            <button (click)="confirmEditName()" class="btn btn-primary mt-2 w-full">
+                Confirm
+            </button>
+            <form method="dialog">
+                <button class="btn btn-outline mt-2 w-full">Close</button>
+            </form>
+        </div>
+    </div>
+</dialog>
+
+<dialog #dialogEditScore class="modal">
+    <div class="modal-box">
+        @if (selectedPlayer()){
+        <h3 class="text-lg font-bold mb-2">{{ selectedPlayer()?.Name ?? "" }}, you require {{ settings.targetScore -
+            selectedPlayer()!.Score}} {{ selectedPlayer()!.Farkles === 2 ? "Watch it, you're on two farkles!" : "" }}
+        </h3>
+        }
+
+        <div class="flex flex-wrap gap-1 mb-2">
+            <button (click)="addScore(50)" class="btn btn-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" class="size-6" fill="none" viewBox="0 0 24 24"
+                    stroke-width="1.5" stroke="black">
+                    <rect x="3" y="3" width="18" height="18" rx="4" fill="white" stroke="black" />
+                    <circle cx="7" cy="7" r="1.25" fill="black" />
+                    <circle cx="17" cy="7" r="1.25" fill="black" />
+                    <circle cx="12" cy="12" r="1.25" fill="black" />
+                    <circle cx="7" cy="16" r="1.25" fill="black" />
+                    <circle cx="17" cy="17" r="1.25" fill="black" />
+                </svg>
+                50
+            </button>
+
+            <button (click)="addScore(100)" class="btn btn-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" class="size-6" fill="none" viewBox="0 0 24 24"
+                    stroke-width="1.5" stroke="black">
+                    <rect x="3" y="3" width="18" height="18" rx="4" fill="white" stroke="black" />
+                    <circle cx="12" cy="12" r="1.25" fill="black" />
+                </svg>
+                100
+            </button>
+
+            <button (click)="addScore(300)" class="btn btn-sm">
+                3x
+                <svg xmlns="http://www.w3.org/2000/svg" class="size-6" fill="none" viewBox="0 0 24 24"
+                    stroke-width="1.5" stroke="black">
+                    <rect x="3" y="3" width="18" height="18" rx="4" fill="white" stroke="black" />
+                    <circle cx="12" cy="12" r="1.25" fill="black" />
+                </svg>
+                300
+            </button>
+            <button (click)="addScore(200)" class="btn btn-sm">
+                3x
+                <svg xmlns="http://www.w3.org/2000/svg" class="size-6" fill="none" viewBox="0 0 24 24"
+                    stroke-width="1.5" stroke="black">
+                    <rect x="3" y="3" width="18" height="18" rx="4" fill="white" stroke="black" />
+                    <circle cx="8" cy="8" r="1.25" fill="black" />
+                    <circle cx="16" cy="16" r="1.25" fill="black" />
+                </svg>
+                200
+            </button>
+            <button (click)="addScore(300)" class="btn btn-sm">
+                3x
+                <svg xmlns="http://www.w3.org/2000/svg" class="size-6" fill="none" viewBox="0 0 24 24"
+                    stroke-width="1.5" stroke="black">
+                    <rect x="3" y="3" width="18" height="18" rx="4" fill="white" stroke="black" />
+                    <circle cx="7" cy="7" r="1.25" fill="black" />
+                    <circle cx="12" cy="12" r="1.25" fill="black" />
+                    <circle cx="17" cy="17" r="1.25" fill="black" />
+                </svg>
+                300
+            </button>
+            <button (click)="addScore(400)" class="btn btn-sm">
+                3x
+                <svg xmlns="http://www.w3.org/2000/svg" class="size-6" fill="none" viewBox="0 0 24 24"
+                    stroke-width="1.5" stroke="black">
+                    <rect x="3" y="3" width="18" height="18" rx="4" fill="white" stroke="black" />
+                    <circle cx="8" cy="8" r="1.25" fill="black" />
+                    <circle cx="16" cy="8" r="1.25" fill="black" />
+                    <circle cx="8" cy="16" r="1.25" fill="black" />
+                    <circle cx="16" cy="16" r="1.25" fill="black" />
+                </svg>
+                400
+            </button>
+            <button (click)="addScore(500)" class="btn btn-sm">
+                3x
+                <svg xmlns="http://www.w3.org/2000/svg" class="size-6" fill="none" viewBox="0 0 24 24"
+                    stroke-width="1.5" stroke="black">
+                    <rect x="3" y="3" width="18" height="18" rx="4" fill="white" stroke="black" />
+                    <circle cx="7" cy="7" r="1.25" fill="black" />
+                    <circle cx="17" cy="7" r="1.25" fill="black" />
+                    <circle cx="12" cy="12" r="1.25" fill="black" />
+                    <circle cx="7" cy="16" r="1.25" fill="black" />
+                    <circle cx="17" cy="17" r="1.25" fill="black" />
+                </svg>
+                500
+            </button>
+            <button (click)="addScore(600)" class="btn btn-sm">
+                3x
+                <svg xmlns="http://www.w3.org/2000/svg" class="size-6" fill="none" viewBox="0 0 24 24"
+                    stroke-width="1.5" stroke="black">
+                    <rect x="3" y="3" width="18" height="18" rx="4" fill="white" stroke="black" />
+                    <circle cx="8" cy="7" r="1.25" fill="black" />
+                    <circle cx="16" cy="7" r="1.25" fill="black" />
+                    <circle cx="8" cy="12" r="1.25" fill="black" />
+                    <circle cx="16" cy="12" r="1.25" fill="black" />
+                    <circle cx="8" cy="17" r="1.25" fill="black" />
+                    <circle cx="16" cy="17" r="1.25" fill="black" />
+                </svg>
+                600
+            </button>
+            <button (click)="scoreFourOfAKind()" class="btn btn-sm text font-semibold">
+                4X
+            </button>
+            <button (click)="scoreFiveOfAKind()" class="btn btn-sm text-lg font-bold">
+                5X
+            </button>
+            <button (click)="scoreSixOfAKind()" class="btn btn-sm text-xl font-bold">
+                6X
+            </button>
+            <button (click)="scoreStraight()" class="btn btn-sm font-bold uppercase">
+                straight
+            </button>
+            <button (click)="scoreThreePairs()" class="btn btn-sm font-bold uppercase">
+                three pairs
+            </button>
+            <button (click)="scoreTwoTriplets()" class="btn btn-sm font-bold uppercase">
+                two triplets
+            </button>
+        </div>
+
+        <div class="table text-center table-sm">
+            <tr class="table-row text-bold text-xs">
+                <th>Starting</th>
+                <th>This round</th>
+                <th>Total</th>
+                <th>Farkles</th>
+            </tr>
+            <tr>
+                <td>{{selectedPlayer()?.Score}}</td>
+                <td><input #inputEditedScore type="number" [(ngModel)]="currentEditedPlayerScore"
+                        (keyup.enter)="confirmEditScore(false)" class="input" /></td>
+                @if (selectedPlayer()){
+                <td>{{ currentEditedPlayerScore() + selectedPlayer()!.Score }}</td>
+                }@else {
+                <td></td>
+                }
+                <td>
+                    @if(selectedPlayer()?.Farkles){
+                    @if(selectedPlayer()!.Farkles! > 0){
+                    <div class="status status-warning"></div>
+                    }
+                    @if(selectedPlayer()!.Farkles! > 1){
+                    <div class="status status-error animate-ping ml-2"></div>
+                    }
+                    }@else {
+                    <div>-</div>
+                    }
+                </td>
+            </tr>
+        </div>
+
+        @if(startingScoreIsNotMet()){
+        <div class="alert alert-warning">Minimum starting score not met</div>
+        }
+
+        <div class="flex justify-center flex-wrap gap-1 mt-2">
+
+            @if (currentEditedPlayerScore() > 0) {
+            <button (click)="confirmEditScore(false)" [disabled]="startingScoreIsNotMet()" class="btn btn-primary">
+                Score it
+            </button>
+            <button (click)="confirmEditScore(true)" [disabled]="startingScoreIsNotMet()" class="btn btn-secondary">
+                Score + pass on
+            </button>
+            }
+            <button (click)="farkle()" class="btn btn-error">Farkle!</button>
+
+            <form method="dialog">
+                <button class="btn">Close</button>
+            </form>
+        </div>
+
+        <div id="leaderboard">
+            <h2 class="text-lg border-b-2 mt-2 mb-1">Leaderboard</h2>
+            <div class="flex flex-col">
+                @for (player of getPlayersByScoreDescending(); track $index) {
+                <div class="flex flex-row justify-start items-center gap-1 flex-wrap">
+                    @if($first) {
+                    <div class="{{player.Id === selectedPlayerId() ? 'text-accent' : ''}}">{{$index + 1}}. <strong>{{
+                            player.Name}}</strong> {{player.Score}}</div>
+                    } @else {
+                    <div class="{{player.Id === selectedPlayerId() ? 'text-accent' : ''}}">{{$index + 1}}.
+                        <strong>{{player.Name}}</strong> {{player.Score}}
+                        <span class="text-neutral-300">({{ getPlayersByScoreDescending()[0].Score - player.Score }} from
+                            leader)</span>
+                    </div>
+                    }
+                    @if(player.Farkles > 0){
+                    <div class="status status-warning ml-2"></div>
+                    }
+                    @if(player.Farkles > 1){
+                    <div class="status status-error animate-ping ml-2"></div>
+                    }
+                </div>
+                }
+            </div>
+        </div>
+
+    </div>
+</dialog>

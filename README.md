@@ -1,59 +1,6 @@
 # GameNightAssistantNg
+## Game Night Assistant - front-end in Angular
+The Game Night Assistant App for Home Assistant invites you to keep score on game night - it doesn't play the games for you, it's not online multiplayer or packed with cutting-edge AI, it's just a score-keeping tool... with added Home Assistant goodness. Basically, depending on the chosen game scoreboard, you can trigger your Home Assistant scripts based on game events, like running a script that flashes your lights red when a player is eliminated, or green when a player scores 100 points, or switching on a kettle's smart plug when the game is over. That sort of thing.
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 20.3.5.
-
-## Development server
-
-To start a local development server, run:
-
-```bash
-ng serve
-```
-
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
-
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
-```bash
-ng generate component component-name
-```
-
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
-
-```bash
-ng generate --help
-```
-
-## Building
-
-To build the project run:
-
-```bash
-ng build
-```
-
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+## Deployment note for the developer
+`npm run dev` to build the FE and push built FE files to my local HA add-ons folder share via `deploy.js` node script that's triggered in `package.json`'s build script config. And... *breathe*.
