@@ -1,19 +1,18 @@
 import { AfterViewInit, Component, computed, ElementRef, inject, OnInit, signal, ViewChild } from '@angular/core';
 import { Dock } from "../../components/dock/dock";
 import { SettingsService } from '../../services/settings-service';
-import { HaApiService } from '../../services/api-service';
+import { TriggerService } from '../../services/trigger-service';
 import { IFarklePlayer } from '../../interfaces/player';
 import { ILogItem } from '../../interfaces/logItem';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { IScriptTrigger, ISettingsFarkle, SettingsType } from '../../interfaces/settings';
-import { IAvailableScript } from '../../interfaces/api-result-entity-state';
+import { ISettingsFarkle, SettingsType } from '../../interfaces/settings';
 import { AvailableTriggersFarkle } from '../../interfaces/enums';
-import { DropdownListItem } from '../../interfaces/dropdown-list';
+import { TriggerSettings } from "../../components/trigger-settings/trigger-settings";
 
 @Component({
   selector: 'app-farkle',
-  imports: [Dock, DatePipe, FormsModule],
+  imports: [Dock, DatePipe, FormsModule, TriggerSettings],
   templateUrl: './farkle.html',
   styleUrl: './farkle.css',
 })
@@ -21,7 +20,7 @@ import { DropdownListItem } from '../../interfaces/dropdown-list';
 export class Farkle implements OnInit, AfterViewInit {
   // services
   protected readonly settingsService = inject(SettingsService);
-  protected readonly apiService = inject(HaApiService);
+  protected readonly triggerService = inject(TriggerService);
 
   // html elements
   @ViewChild('dialogInfo') dialogInfo!: ElementRef;
@@ -43,15 +42,7 @@ export class Farkle implements OnInit, AfterViewInit {
   protected currentPlayerIndex = signal(0);
   protected selectedPlayerId = signal(0);
   protected currentEditedPlayerScore = signal(0);
-  protected triggers = signal<IScriptTrigger[]>([]);
-  protected newTrigger = signal("");
-  protected newTriggerScript = signal("");
-  protected availableTriggersDropdown = signal<DropdownListItem[]>([]);
-  protected availableScripts: Array<IAvailableScript> = [];
   protected settings: ISettingsFarkle = this.settingsService.defaultSettings(SettingsType.Farkle) as ISettingsFarkle;
-  protected duplicateTriggerWarning = signal(false);
-  protected availableTriggersKeys = Object.keys(AvailableTriggersFarkle);
-  protected availableTriggersValues = Object.values(AvailableTriggersFarkle);
 
   // computed
   protected selectedPlayer = computed(() => {
@@ -69,10 +60,6 @@ export class Farkle implements OnInit, AfterViewInit {
   // lifecycle hooks
   ngOnInit(): void {
     this.settings = this.settingsService.getGameSettings(SettingsType.Farkle) as ISettingsFarkle;
-    this.triggers.set(this.settingsService.getTriggers(SettingsType.Farkle));
-    this.availableScripts = this.settingsService.getAvailableScripts();
-
-    this.updateAvailableTriggers();
   }
 
   ngAfterViewInit(): void {
@@ -97,7 +84,7 @@ export class Farkle implements OnInit, AfterViewInit {
     this.dialogAddPlayer.nativeElement.close();
     this.inputAddName.nativeElement.value = "";
 
-    this.runTrigger(AvailableTriggersFarkle.PlayerAdded);    
+    this.triggerService.runTrigger(AvailableTriggersFarkle.PlayerAdded);    
   }
 
   editName(playerId: number) {
@@ -123,7 +110,7 @@ export class Farkle implements OnInit, AfterViewInit {
     this.currentPlayerIndex.set(this.players().findIndex(p => p.Id === playerId));
     this.dialogEditName.nativeElement.close();
 
-    this.runTrigger(AvailableTriggersFarkle.FirstPlayerSelected);
+    this.triggerService.runTrigger(AvailableTriggersFarkle.FirstPlayerSelected);
   }
 
   randomiseTurn() {
@@ -134,32 +121,32 @@ export class Farkle implements OnInit, AfterViewInit {
 
   scoreFourOfAKind(){
     this.addScore(1000);
-    this.runTrigger(AvailableTriggersFarkle.FourOfAKindScored);
+    this.triggerService.runTrigger(AvailableTriggersFarkle.FourOfAKindScored);
   }
 
   scoreFiveOfAKind(){
     this.addScore(2000);
-    this.runTrigger(AvailableTriggersFarkle.FiveOfAKindScored);
+    this.triggerService.runTrigger(AvailableTriggersFarkle.FiveOfAKindScored);
   }
 
   scoreSixOfAKind(){
     this.addScore(3000);
-    this.runTrigger(AvailableTriggersFarkle.SixOfAKindScored);
+    this.triggerService.runTrigger(AvailableTriggersFarkle.SixOfAKindScored);
   }
 
   scoreStraight(){
     this.addScore(1500);
-    this.runTrigger(AvailableTriggersFarkle.StraightScored);
+    this.triggerService.runTrigger(AvailableTriggersFarkle.StraightScored);
   }
 
   scoreThreePairs(){
     this.addScore(1500);
-    this.runTrigger(AvailableTriggersFarkle.ThreePairsScores);
+    this.triggerService.runTrigger(AvailableTriggersFarkle.ThreePairsScores);
   }
 
   scoreTwoTriplets(){
     this.addScore(2500);
-    this.runTrigger(AvailableTriggersFarkle.TwoTripletsScored);
+    this.triggerService.runTrigger(AvailableTriggersFarkle.TwoTripletsScored);
   }
 
   addScore(amount: number) {
@@ -180,7 +167,7 @@ export class Farkle implements OnInit, AfterViewInit {
     // reset farkles
     if (thisScore > 0) {
       if (this.selectedPlayer()!.Farkles > 0){
-        this.runTrigger(AvailableTriggersFarkle.FarkleCleared);
+        this.triggerService.runTrigger(AvailableTriggersFarkle.FarkleCleared);
       }
 
       this.selectedPlayer()!.Farkles = 0;
@@ -197,9 +184,9 @@ export class Farkle implements OnInit, AfterViewInit {
       this.currentEditedPlayerScore.set(0);
     }
 
-    if (thisScore > previousScore) this.runTrigger(AvailableTriggersFarkle.ScoreIncrease);
-    if (thisScore < previousScore) this.runTrigger(AvailableTriggersFarkle.ScoreDecrease);
-    if (thisScore >= this.settings.targetScore) this.runTrigger(AvailableTriggersFarkle.TargetScoreReached);
+    if (thisScore > previousScore) this.triggerService.runTrigger(AvailableTriggersFarkle.ScoreIncrease);
+    if (thisScore < previousScore) this.triggerService.runTrigger(AvailableTriggersFarkle.ScoreDecrease);
+    if (thisScore >= this.settings.targetScore) this.triggerService.runTrigger(AvailableTriggersFarkle.TargetScoreReached);
 
     if (this.settings.autoAdvanceOnScoreUpdate) {
       return this.advanceTurn();
@@ -213,9 +200,9 @@ export class Farkle implements OnInit, AfterViewInit {
       this.currentEditedPlayerScore.set(0);
       this.selectedPlayer()!.Farkles++;
 
-      if (this.selectedPlayer()!.Farkles === 1) this.runTrigger(AvailableTriggersFarkle.Farkle);
-      if (this.selectedPlayer()!.Farkles === 2) this.runTrigger(AvailableTriggersFarkle.TwoFarkles);
-      if (this.selectedPlayer()!.Farkles === 3) this.runTrigger(AvailableTriggersFarkle.ThreeFarkles);
+      if (this.selectedPlayer()!.Farkles === 1) this.triggerService.runTrigger(AvailableTriggersFarkle.Farkle);
+      if (this.selectedPlayer()!.Farkles === 2) this.triggerService.runTrigger(AvailableTriggersFarkle.TwoFarkles);
+      if (this.selectedPlayer()!.Farkles === 3) this.triggerService.runTrigger(AvailableTriggersFarkle.ThreeFarkles);
 
       // oh dear... you've farkled out
       if (this.selectedPlayer()!.Farkles === 3) {
@@ -267,66 +254,6 @@ export class Farkle implements OnInit, AfterViewInit {
     return players.sort((a, b) => (b.Score > a.Score ? 1 : -1));
   }
 
-  updateAvailableTriggers() {
-    let availableTriggers : DropdownListItem[] = [];
-    const currentTriggers = this.settingsService.getTriggers(SettingsType.Farkle);
-
-    for (let i = 0; i < this.availableTriggersKeys.length; i++) {
-      // only add to dropdown if trigger hasn't yet been used (but always include Score Reached, as multiple of these are ok)
-      if (currentTriggers.findIndex(t => t.trigger === this.availableTriggersValues[i].toString()) === -1){
-              availableTriggers.push({
-                Value: this.availableTriggersKeys[i].toString(),
-                Text: this.availableTriggersValues[i].toString()
-              } as DropdownListItem);
-          }
-    }
-    this.availableTriggersDropdown.set(availableTriggers);
-  }
-
-  addTrigger() {
-    // duplicate check
-    const newTrigger = this.getEnumValueFromKey(AvailableTriggersFarkle, this.newTrigger());
-    const newScript = this.availableScripts.find(x => x.EntityId === this.newTriggerScript())!.Name;
-   
-    for (const trigger of this.triggers()) {
-      if (trigger.trigger === newTrigger){
-        this.duplicateTriggerWarning.set(true);
-        return;
-      }
-    }
-
-    this.duplicateTriggerWarning.set(false);
-    this.triggers.update(values => [...values, 
-      { 
-        id: new Date().toISOString(), 
-        trigger: newTrigger, 
-        script: newScript
-      } as IScriptTrigger]);
-      this.settingsService.saveTriggers(SettingsType.Farkle, this.triggers());
-      this.updateAvailableTriggers();
-  }
-
-  deleteTrigger(id: string) {
-    let triggers = [...this.triggers()];
-    triggers = triggers.filter(t => t.id !== id);
-    this.triggers.set(triggers);
-    this.settingsService.saveTriggers(SettingsType.Farkle, this.triggers());
-    this.updateAvailableTriggers();
-  }
-
-    runTrigger(trigger : AvailableTriggersFarkle){
-      const scriptName = this.triggers().find(t => t.script && t.trigger === trigger)?.script ?? null;
-      const entityId = this.availableScripts.find(s => s.Name === scriptName)!.EntityId;
-      if (entityId) {
-        this.apiService.runScript(entityId).subscribe({
-          next: (_response) => {},
-          error: (err) => {
-            console.log("Api error:", err);
-          }
-      });
-    }
-  }
-
   resetSettings() {
     this.settings = this.settingsService.defaultSettings(SettingsType.Farkle) as ISettingsFarkle;
   }
@@ -336,17 +263,8 @@ export class Farkle implements OnInit, AfterViewInit {
     this.settingsService.saveGameSettings(SettingsType.Farkle, this.settings);
   }
 
-  saveTriggers() {
+  closeScriptSettingsDialog(){
     this.dialogScriptSettings.nativeElement.close();
-    this.settingsService.saveTriggers(SettingsType.Farkle, this.triggers());
-  }
-
-  getEnumValueFromKey<T extends object>(enumObject: T, key: string): T[keyof T] | undefined {
-    return enumObject[key as keyof T];
-  }
-
-  getEnumKeyFromValue<T extends object>(enumObject: T, value: T[keyof T]): keyof T | undefined {
-    return Object.keys(enumObject).find(key => enumObject[key as keyof T] === value) as keyof T | undefined;
   }
 
   // Dock buttons

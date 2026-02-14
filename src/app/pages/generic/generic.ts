@@ -6,6 +6,7 @@ import { PlayDirection } from '../../interfaces/enums';
 import { FormsModule } from '@angular/forms';
 import { Dock } from "../../components/dock/dock";
 import { SettingsService } from '../../services/settings-service';
+import { TriggerService } from '../../services/trigger-service';
 import { HaApiService } from '../../services/api-service';
 import { IAvailableScript } from '../../interfaces/api-result-entity-state';
 
@@ -18,8 +19,8 @@ import { IAvailableScript } from '../../interfaces/api-result-entity-state';
 
 export class Generic implements OnInit, AfterViewInit {
   // services
-  protected readonly SettingsService = inject(SettingsService);
-  protected readonly ApiService = inject(HaApiService);
+  protected readonly triggerService = inject(TriggerService);
+  protected readonly apiService = inject(HaApiService);
 
   // html elements
   @ViewChild('dialogEditName') dialogEditName!: ElementRef;
@@ -74,7 +75,7 @@ export class Generic implements OnInit, AfterViewInit {
 
   // lifecycle hooks
   ngOnInit(): void {
-    this.availableScripts = this.SettingsService.getAvailableScripts();
+    this.availableScripts = this.triggerService.getAvailableScripts();
   }
 
   ngAfterViewInit(): void {
@@ -277,7 +278,7 @@ export class Generic implements OnInit, AfterViewInit {
   }
 
   runScriptForEntity(entityId: string) {
-    this.ApiService.runScript(entityId).subscribe({
+    this.apiService.runScript(entityId).subscribe({
       next: (_response) => { },
       error: (err) => {
         console.log("Api error:", err);

@@ -1,0 +1,53 @@
+<div class="modal-box">
+    <h2 class="text-lg border-b-2 mb-1">Script settings</h2>
+    <table class="table">
+        <tbody>
+            @for (trigger of triggers(); track $index) {
+            <tr class="table-row table-zebra">
+                <td>
+                    <div class="flex gap-1">
+                        <button (click)="deleteTrigger(trigger!.id)" class="btn btn-error btn-xs mr-1">x</button>
+                        <div><strong>{{ trigger!.trigger }}</strong></div>
+                    </div>
+                    <div>{{ trigger!.script }}</div>
+                </td>
+            </tr>
+            }
+        </tbody>
+    </table>
+    <h4>Add trigger</h4>
+    <div class="flex align-middle gap-2 flex-wrap text-xs">
+        <select id="availableTriggers" [(ngModel)]="newTrigger" class="select select-xs">
+            <option value="" disabled hidden>{{ 'Select a trigger' }}</option>
+            @for (trigger of availableTriggersDropdown(); track $index) {
+            <option [value]="trigger.Value">{{trigger.Text}}</option>
+            }
+        </select>
+        <select id="availableScripts" [(ngModel)]="newTriggerScript" class="select select-xs">
+            <option value="" disabled hidden>{{ 'Select a script' }}</option>
+            @for (script of availableScripts; track $index) {
+            <option [value]="script.EntityId">{{script.Name}}</option>
+            }
+        </select>
+        <button (click)="addTrigger()" [disabled]="!newTrigger() || !newTriggerScript()" class="btn btn-success btn-xs">
+            + Confirm
+        </button>
+
+        @if (duplicateTriggerWarning()) {
+        <div role="alert" class="alert alert-error">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 shrink-0 stroke-current" fill="none"
+                viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span>Trigger for this event already exists</span>
+        </div>
+        }
+    </div>
+
+    <div class="flex justify-between mt-2">
+        <button (click)="saveTriggers()" class="btn btn-primary">Close</button>
+    </div>
+
+    <form method="dialog"></form>
+</div>

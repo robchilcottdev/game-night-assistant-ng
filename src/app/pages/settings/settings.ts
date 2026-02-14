@@ -1,9 +1,10 @@
 import { OnInit, Component, inject, signal, computed } from '@angular/core';
 import { HaApiService } from '../../services/api-service';
 import { IApiResultEntityState, IAvailableScript } from '../../interfaces/api-result-entity-state';
-import { LocalStorage } from '../../interfaces/enums';
+import { AvailableTriggersFarkle, LocalStorage } from '../../interfaces/enums';
 import { Dock } from "../../components/dock/dock";
 import { FormsModule } from '@angular/forms';
+import { IScriptTrigger } from '../../interfaces/settings';
 
 @Component({
   selector: 'app-settings',
@@ -65,24 +66,24 @@ export class Settings implements OnInit {
 
   refreshFromHa() {
     this.allScripts.set([]);
-    let scriptsToAdd : IAvailableScript[] = [];
+    let scriptsToAdd: IAvailableScript[] = [];
 
     this.apiService.getStates().subscribe({
       next: (states: IApiResultEntityState[]) => {
         for (const state of states) {
           if (state.entity_id.startsWith('script')) {
             scriptsToAdd.push(
-              { 
+              {
                 EntityId: state.entity_id,
                 Name: state.attributes.friendly_name,
                 Active: this.checkStoredActiveStateForEntity(state.entity_id)
               }
-            );  
+            );
             scriptsToAdd.sort((a, b) => a.Name.localeCompare(b.Name));
             this.allScripts.set(scriptsToAdd);
           }
         }
-        
+
         localStorage.setItem('gna-available-scripts', JSON.stringify(this.allScripts()));
       },
       error: (err) => {
