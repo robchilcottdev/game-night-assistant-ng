@@ -2,23 +2,25 @@ import { Component, signal, computed, ElementRef, ViewChild, OnInit, AfterViewIn
 import { DatePipe } from '@angular/common';
 import { IPlayer } from '../../interfaces/player';
 import { ILogItem } from '../../interfaces/logItem';
-import { PlayDirection } from '../../interfaces/enums';
+import { PlayDirection, AvailableTriggersGeneric } from '../../interfaces/enums';
 import { FormsModule } from '@angular/forms';
 import { Dock } from "../../components/dock/dock";
 import { SettingsService } from '../../services/settings-service';
 import { TriggerService } from '../../services/trigger-service';
 import { HaApiService } from '../../services/api-service';
-import { IAvailableScript } from '../../interfaces/api-result-entity-state';
+import { TriggerSettings } from "../../components/trigger-settings/trigger-settings";
+import { ISettingsGeneric, SettingsType } from '../../interfaces/settings';
 
 @Component({
   selector: 'app-generic',
-  imports: [FormsModule, DatePipe, Dock],
+  imports: [FormsModule, DatePipe, Dock, TriggerSettings],
   templateUrl: './generic.html',
   styleUrl: './generic.css',
 })
 
 export class Generic implements OnInit, AfterViewInit {
   // services
+  protected readonly settingsService = inject(SettingsService);
   protected readonly triggerService = inject(TriggerService);
   protected readonly apiService = inject(HaApiService);
 
@@ -44,25 +46,10 @@ export class Generic implements OnInit, AfterViewInit {
   protected selectedPlayerId = signal(0);
   protected playDirection = signal<PlayDirection>(PlayDirection.Clockwise);
   protected startingScore = signal(0);
-  protected allowNegativeScores = signal(false);
   protected modifyScoreAmount = signal(1);
   protected currentEditedPlayerScore = signal(0);
-  protected autoAdvanceOnScoreUpdate = signal(true);
-  protected autoOpenEditScoreOnAdvance = signal(false);
-  protected runScriptOnSetScore = signal(false);
-  protected runScriptOnSetScoreAmount = signal(0);
-  protected runScriptOnSetScoreEntityId = signal("");
-  protected runScriptOnIncreasedScore = signal(false);
-  protected runScriptOnIncreasedScoreEntityId = signal("");
-  protected runScriptOnReducedScore = signal(false);
-  protected runScriptOnReducedScoreEntityId = signal("");
-  protected runScriptOnNoScore = signal(false);
-  protected runScriptOnNoScoreEntityId = signal("");
-  protected runScriptOnPlayerRemoved = signal(false);
-  protected runScriptOnPlayerRemovedEntityId = signal("");
-  protected runScriptWhenFirstPlayerSelected = signal(false);
-  runScriptWhenFirstPlayerSelectedEntityId = signal("");
-  protected availableScripts = Array<IAvailableScript>();
+  protected settingsType: SettingsType = SettingsType.Generic;
+  protected settings = signal(this.settingsService.defaultSettings(this.settingsType) as ISettingsGeneric);
 
   // computed
   protected playDirectionText = computed(() => {
@@ -75,7 +62,7 @@ export class Generic implements OnInit, AfterViewInit {
 
   // lifecycle hooks
   ngOnInit(): void {
-    this.availableScripts = this.triggerService.getAvailableScripts();
+    this.settings.set(this.settingsService.getGameSettings(this.settingsType) as ISettingsGeneric);
   }
 
   ngAfterViewInit(): void {
@@ -114,6 +101,8 @@ export class Generic implements OnInit, AfterViewInit {
     this.newPlayerId++;
     this.dialogAddPlayer.nativeElement.close();
     this.inputAddName.nativeElement.value = "";
+
+    this.triggerService.runTrigger(AvailableTriggersGeneric.PlayerAdded);
   }
 
   selectPlayer(playerId: number) {
@@ -141,7 +130,7 @@ export class Generic implements OnInit, AfterViewInit {
     this.currentEditedPlayerScore.update(value => value - amount);
 
     // correct a negative score if rules prevent them
-    if (!this.allowNegativeScores()) {
+    if (!this.settings().allowNegativeScores) {
       if ((this.currentEditedPlayerScore() - amount) < 0) {
         this.currentEditedPlayerScore.set(0);
       }
@@ -154,16 +143,18 @@ export class Generic implements OnInit, AfterViewInit {
     const previousScore = this.selectedPlayer()!.Score;
     let thisScore = parseInt(this.inputEditedScore.nativeElement.value);
 
-    if (!this.allowNegativeScores() && thisScore < 0) thisScore = 0;
+    if (!this.settings().allowNegativeScores && thisScore < 0) thisScore = 0;
 
     this.selectedPlayer()!.Score = thisScore;
     this.log.push({ DateStamp: new Date(), Text: `${this.selectedPlayer()!.Name} score changed to ${thisScore}` });
 
     this.modifyScoreAmount.set(0);
 
-    this.checkForEvents(previousScore, thisScore);
-
-    if (this.autoAdvanceOnScoreUpdate()) {
+    if (thisScore === previousScore) this.triggerService.runTrigger(AvailableTriggersGeneric.ZeroScored);
+    if (thisScore > previousScore) this.triggerService.runTrigger(AvailableTriggersGeneric.ScoreIncrease);
+    if (thisScore < previousScore) this.triggerService.runTrigger(AvailableTriggersGeneric.ScoreDecrease);
+   
+    if (this.settings().autoAdvanceOnScoreUpdate) {
       return this.advanceTurn();
     }
   }
@@ -174,10 +165,8 @@ export class Generic implements OnInit, AfterViewInit {
     this.log.push({ DateStamp: new Date(), Text: playerToDelete?.Active ? `Goodbye, ${playerToDelete?.Name}!` : `${playerToDelete?.Name} is back!` });
     playerToDelete!.Active = !playerToDelete!.Active;
     this.players.set(players);
-
-    if (this.runScriptOnPlayerRemoved() && !playerToDelete!.Active) {
-      this.runScriptForEntity(this.runScriptOnPlayerRemovedEntityId());
-    }
+    
+    this.triggerService.runTrigger(AvailableTriggersGeneric.PlayerRemoved);
   }
 
   setStartingPlayer(playerId: number) {
@@ -190,9 +179,7 @@ export class Generic implements OnInit, AfterViewInit {
     this.currentPlayerIndex.set(this.players().findIndex(p => p.Id === playerId));
     this.dialogEditName.nativeElement.close();
 
-    if (this.runScriptWhenFirstPlayerSelected()) {
-      this.runScriptForEntity(this.runScriptWhenFirstPlayerSelectedEntityId());
-    }
+    this.triggerService.runTrigger(AvailableTriggersGeneric.FirstPlayerSelected);
   }
 
   changeDirection() {
@@ -229,7 +216,7 @@ export class Generic implements OnInit, AfterViewInit {
     } while (!this.players()[this.currentPlayerIndex()].Active); // advance turn until we're not on a deleted/de-activated player
     this.log.push({ DateStamp: new Date(), Text: `It's your turn, ${this.players()[this.currentPlayerIndex()].Name}` });
 
-    if (this.autoOpenEditScoreOnAdvance()) {
+    if (this.settings().autoOpenEditScoreOnAdvance) {
       this.selectedPlayerId.set(this.players()[this.currentPlayerIndex()].Id);
       this.currentEditedPlayerScore.set(this.players()[this.currentPlayerIndex()].Score);
       this.editScore(this.selectedPlayerId());
@@ -254,36 +241,13 @@ export class Generic implements OnInit, AfterViewInit {
     return players.sort((a, b) => (b.Score > a.Score ? 1 : -1));
   }
 
-  checkForEvents(previousScore: number, thisScore: number) {
-
-    // nothing scored
-    if (this.runScriptOnNoScore() && thisScore === previousScore) {
-      this.runScriptForEntity(this.runScriptOnNoScoreEntityId());
-    }
-
-    // score increased
-    if (this.runScriptOnIncreasedScore() && thisScore < previousScore) {
-      this.runScriptForEntity(this.runScriptOnIncreasedScoreEntityId());
-    }
-
-    // score reduced
-    if (this.runScriptOnReducedScore() && thisScore < previousScore) {
-      this.runScriptForEntity(this.runScriptOnReducedScoreEntityId());
-    }
-
-    // target score reached
-    if (this.runScriptOnSetScore() && this.players().some(p => p.Score >= this.runScriptOnSetScoreAmount())) {
-      this.runScriptForEntity(this.runScriptOnSetScoreEntityId());
-    }
+  resetSettings() {
+    this.settings.set(this.settingsService.defaultSettings(this.settingsType) as ISettingsGeneric);
   }
 
-  runScriptForEntity(entityId: string) {
-    this.apiService.runScript(entityId).subscribe({
-      next: (_response) => { },
-      error: (err) => {
-        console.log("Api error:", err);
-      }
-    });
+  saveSettings() {
+    this.dialogSettings.nativeElement.close();
+    this.settingsService.saveGameSettings(this.settingsType, this.settings());
   }
 
   // Dock buttons
@@ -306,6 +270,10 @@ export class Generic implements OnInit, AfterViewInit {
 
   showScriptSettings() {
     this.dialogScriptSettings.nativeElement.showModal();
+  }
+
+  closeScriptSettingsDialog(){
+    this.dialogScriptSettings.nativeElement.close();
   }
 
 }

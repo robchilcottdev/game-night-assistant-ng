@@ -64,7 +64,7 @@
                             }
                         </span>
                         <span
-                            class="{{ player.Score > settings.targetScore ? 'font-extrabold':'' }} mr-2">{{player.Name}}</span>
+                            class="{{ player.Score > settings().targetScore ? 'font-extrabold':'' }} mr-2">{{player.Name}}</span>
                         <button (click)="editName(player.Id)" class="btn btn-xs mr-2">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                                 stroke="currentColor" class="size-6">
@@ -74,7 +74,7 @@
                         </button>
                     </td>
                     <td><span
-                            class="{{ player.Score > settings.targetScore ? 'font-extrabold':'' }} mr-2">{{player.Score}}</span>
+                            class="{{ player.Score > settings().targetScore ? 'font-extrabold':'' }} mr-2">{{player.Score}}</span>
                         <button (click)="editScore(player.Id)" class="btn btn-xs ml-2">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                                 stroke="currentColor" class="size-6">
@@ -138,34 +138,34 @@
             <div class="text-xs mb-1">Target score
             </div>
             <input type="number" id="targetScore" min="0" class="input input-xs mb-2"
-                [(ngModel)]="settings.targetScore" />
+                [(ngModel)]="settings().targetScore" />
         </div>
         <div class="flex align-middle gap-2 flex-wrap">
             <div class="text-xs mb-1">Minimum points to start
             </div>
             <input type="number" id="minimumPointsToStart" min="0" class="input input-xs mb-2"
-                [(ngModel)]="settings.minimumPointsToStart" />
+                [(ngModel)]="settings().minimumPointsToStart" />
         </div>
         <div class="flex align-middle gap-2 flex-wrap">
             <div class="text-xs mb-1">Penalty for 3 consecutive Farkles
             </div>
             <input type="number" id="threeFarklePenalty" min="0" class="input input-xs mb-2"
-                [(ngModel)]="settings.threeFarklePenalty" />
+                [(ngModel)]="settings().threeFarklePenalty" />
         </div>
         <div class="flex align-middle gap-2 flex-wrap">
             <input type="checkbox" id="allowNegativeScores" class="checkbox-neutral"
-                [(ngModel)]="settings.allowNegativeScores" />
+                [(ngModel)]="settings().allowNegativeScores" />
             <label for="allowNegativeScores" class="label text-xs m-1">Allow negative scores</label>
         </div>
         <div class="flex align-middle gap-2 flex-wrap">
             <input type="checkbox" id="autoAdvanceOnScoreUpdate" class="checkbox-neutral"
-                [(ngModel)]="settings.autoAdvanceOnScoreUpdate" />
+                [(ngModel)]="settings().autoAdvanceOnScoreUpdate" />
             <label for="autoAdvanceOnScoreUpdate" class="label text-xs m-1">Auto-advance turn on score
                 update</label>
         </div>
         <div class="flex align-middle gap-2 flex-wrap">
             <input type="checkbox" id="autoOpenEditScoreOnAdvance" class="checkbox-neutral"
-                [(ngModel)]="settings.autoOpenEditScoreOnAdvance" />
+                [(ngModel)]="settings().autoOpenEditScoreOnAdvance" />
             <label for="autoOpenEditScoreOnAdvance" class="label text-xs m-1">Open Edit Score on turn
                 advance</label>
         </div>
@@ -179,7 +179,7 @@
 </dialog>
 
 <dialog #dialogScriptSettings class="modal">
-    <app-trigger-settings (closeDialogRequested)="closeScriptSettingsDialog()"></app-trigger-settings>
+    <app-trigger-settings (closeDialogRequested)="closeScriptSettingsDialog()" [settingsType]="settingsType"></app-trigger-settings>
 </dialog>
 
 
@@ -222,7 +222,7 @@
 <dialog #dialogEditScore class="modal">
     <div class="modal-box">
         @if (selectedPlayer()){
-        <h3 class="text-lg font-bold mb-2">{{ selectedPlayer()?.Name ?? "" }}, you require {{ settings.targetScore -
+        <h3 class="text-lg font-bold mb-2">{{ selectedPlayer()?.Name ?? "" }}, you require {{ settings().targetScore -
             selectedPlayer()!.Score}} {{ selectedPlayer()!.Farkles === 2 ? "Watch it, you're on two farkles!" : "" }}
         </h3>
         }

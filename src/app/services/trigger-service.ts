@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { IScriptTrigger, SettingsType } from '../interfaces/settings';
-import { AvailableTriggersFarkle, LocalStorage } from '../interfaces/enums';
+import { AvailableTriggersFarkle, AvailableTriggersGeneric, LocalStorage } from '../interfaces/enums';
 import { HaApiService } from './api-service';
 import { IAvailableScript } from '../interfaces/api-result-entity-state';
 
@@ -9,6 +9,7 @@ import { IAvailableScript } from '../interfaces/api-result-entity-state';
 })
 export class TriggerService {
   protected apiService = inject(HaApiService);
+
 
   public getAvailableScripts(): IAvailableScript[] {
     const scriptsFromStorage = localStorage.getItem(LocalStorage.gnaAvailableScripts);
@@ -30,9 +31,10 @@ export class TriggerService {
     return JSON.parse(storedTriggers);
   }
 
-  runTrigger(triggerType: AvailableTriggersFarkle) {
+  runTrigger(triggerType: AvailableTriggersGeneric | AvailableTriggersFarkle) {  
     const availableScripts = this.getAvailableScripts();
-    const triggers = this.getTriggers(SettingsType.Farkle); // for now
+    const triggers = this.getTriggers(this.getSettingsTypeFromTriggerType(triggerType));
+    
     const scriptName = triggers.find(t => t.trigger === triggerType)?.script ?? null;
 
     if (scriptName) {
@@ -56,5 +58,11 @@ export class TriggerService {
       default: break;
     }
     localStorage.setItem(storageKey, JSON.stringify(triggers));
+  }
+
+  private getSettingsTypeFromTriggerType(triggerType : AvailableTriggersGeneric | AvailableTriggersFarkle){
+    if (Object.values(AvailableTriggersGeneric).includes(triggerType as AvailableTriggersGeneric)) return SettingsType.Generic;
+    // vile shortcut for now ;)
+    return SettingsType.Farkle;
   }
 }

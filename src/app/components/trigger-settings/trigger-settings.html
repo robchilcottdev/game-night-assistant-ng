@@ -7,7 +7,11 @@
                 <td>
                     <div class="flex gap-1">
                         <button (click)="deleteTrigger(trigger!.id)" class="btn btn-error btn-xs mr-1">x</button>
-                        <div><strong>{{ trigger!.trigger }}</strong></div>
+                        <div><strong>{{ trigger!.trigger }}
+                            @if(trigger.amount){
+                                {{ (trigger.amount)}}
+                            }
+                        </strong></div>
                     </div>
                     <div>{{ trigger!.script }}</div>
                 </td>
@@ -23,6 +27,11 @@
             <option [value]="trigger.Value">{{trigger.Text}}</option>
             }
         </select>
+
+        @if(showTriggerAmount()) {
+            <input type="text" [(ngModel)]="newTriggerAmount" placeholder="Amount" class="input input-xs" />
+        }
+
         <select id="availableScripts" [(ngModel)]="newTriggerScript" class="select select-xs">
             <option value="" disabled hidden>{{ 'Select a script' }}</option>
             @for (script of availableScripts; track $index) {

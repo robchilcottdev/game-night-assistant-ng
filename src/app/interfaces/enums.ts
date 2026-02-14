@@ -28,3 +28,13 @@ export enum AvailableTriggersFarkle {
     TwoTripletsScored = "Two triplets scored",
     FarkleCleared = "Farkle cleared"
 }
+
+export enum AvailableTriggersGeneric {
+    TargetScoreReached = "Target scored reached",
+    FirstPlayerSelected = "First player selected",
+    ScoreIncrease = "Score increases",
+    ScoreDecrease = "Score decreases",
+    ZeroScored = "Zero scored",
+    PlayerAdded = "Player added",
+    PlayerRemoved = "Player removed"
+}

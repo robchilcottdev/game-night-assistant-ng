@@ -12,7 +12,6 @@
         </span>
         <h1 class="text-xl">Generic Score Keeper</h1>
     </div>
-
     <div class="flex-row m-2">
         <button (click)="addPlayer()" class="btn btn-primary m-1">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
@@ -131,7 +130,7 @@
 </main>
 
 <app-dock (reloadRequested)="doReload()" (settingsRequested)="showSettings()" (infoRequested)="showInfo()"
-    (logRequested)="showLog()"></app-dock>
+    (logRequested)="showLog()" (scriptSettingsRequested)="showScriptSettings()"></app-dock>
 
 <dialog #dialogInfo class="modal">
     <div class="modal-box">
@@ -236,6 +235,66 @@
     </div>
 </dialog>
 
+<dialog #dialogLog class="modal">
+    <div class="modal-box">
+        <h2 class="text-lg border-b-2 mb-1">Game log</h2>
+        <button (click)="clearLog()" class="btn btn-xs btn-neutral uppercase float-right">clear log</button>
+        @for (item of this.log; track $index) {
+        <span>{{item.DateStamp | date:'shortTime'}}</span>: <span>{{item.Text}}</span><br />
+        }
+        <form method="dialog">
+            <button class="btn btn-outline mt-2 w-full">Close</button>
+        </form>
+    </div>
+</dialog>
+
+<dialog #dialogSettings class="modal">
+    <div class="modal-box">
+        <h2 class="text-lg border-b-2 mb-1">Settings</h2>
+        <div class="flex-col">
+            <div>
+                <div class="text-xs mb-1">Starting score (handy if you want scores to count
+                    <strong>down</strong>).
+                </div>
+                <input type="number" id="startingScore" min="0" class="input input-xs mb-2"
+                    [(ngModel)]="settings().startingScore" />
+            </div>
+            <div>
+                <div class="text-xs mb-1">Target score (optional).
+                </div>
+                <input type="number" id="startingScore" min="0" class="input input-xs mb-2"
+                    [(ngModel)]="settings().targetScore" />
+            </div>
+            <div>
+                <input type="checkbox" id="allowNegativeScores" class="checkbox-neutral"
+                    [(ngModel)]="settings().allowNegativeScores" />
+                <label for="allowNegativeScores" class="label text-xs m-1">Allow negative scores</label>
+            </div>
+            <div>
+                <input type="checkbox" id="autoAdvanceOnScoreUpdate" class="checkbox-neutral"
+                    [(ngModel)]="settings().autoAdvanceOnScoreUpdate" />
+                <label for="autoAdvanceOnScoreUpdate" class="label text-xs m-1">Auto-advance turn on score
+                    update</label>
+            </div>
+            <div>
+                <input type="checkbox" id="autoOpenEditScoreOnAdvance" class="checkbox-neutral"
+                    [(ngModel)]="settings().autoOpenEditScoreOnAdvance" />
+                <label for="autoOpenEditScoreOnAdvance" class="label text-xs m-1">Open Edit Score on turn
+                    advance</label>
+            </div>  
+        <div class="flex justify-between mt-2">
+            <button (click)="resetSettings()" class="btn btn-warning">Reset to defaults</button>
+            <button (click)="saveSettings()" class="btn btn-primary">Close</button>
+        </div>
+        <form method="dialog"></form>                 
+        </div>
+    </div>
+</dialog>
+
+<dialog #dialogScriptSettings class="modal">
+    <app-trigger-settings (closeDialogRequested)="closeScriptSettingsDialog()" [settingsType]="settingsType"></app-trigger-settings>
+</dialog>
+
 <dialog #dialogAddPlayer class="modal">
     <div class="modal-box">
         <div class="flex-col">
@@ -296,145 +355,6 @@
             </form>
         </div>
 
-    </div>
-</dialog>
-
-<dialog #dialogSettings class="modal">
-    <div class="modal-box">
-        <h2 class="text-lg border-b-2 mb-1">Settings</h2>
-        <div class="flex-col">
-            <div>
-                <div class="text-xs mb-1">Starting score (handy if you want scores to count
-                    <strong>down</strong>).
-                </div>
-                <input type="number" id="startingScore" min="0" class="input input-xs mb-2"
-                    [(ngModel)]="startingScore" />
-            </div>
-            <div>
-                <input type="checkbox" id="allowNegativeScores" class="checkbox-neutral"
-                    [(ngModel)]="allowNegativeScores" />
-                <label for="allowNegativeScores" class="label text-xs m-1">Allow negative scores</label>
-            </div>
-            <div>
-                <input type="checkbox" id="autoAdvanceOnScoreUpdate" class="checkbox-neutral"
-                    [(ngModel)]="autoAdvanceOnScoreUpdate" />
-                <label for="autoAdvanceOnScoreUpdate" class="label text-xs m-1">Auto-advance turn on score
-                    update</label>
-            </div>
-            <div>
-                <input type="checkbox" id="autoOpenEditScoreOnAdvance" class="checkbox-neutral"
-                    [(ngModel)]="autoOpenEditScoreOnAdvance" />
-                <label for="autoOpenEditScoreOnAdvance" class="label text-xs m-1">Open Edit Score on turn
-                    advance</label>
-            </div>
-
-            <div>
-                <input type="checkbox" id="runScriptWhenFirstPlayerSelected" class="checkbox-neutral"
-                    [(ngModel)]="runScriptWhenFirstPlayerSelected" />
-                <label for="runScriptWhenFirstPlayerSelected" class="label text-xs m-1">Run script when first player
-                    selected</label>
-                @if (runScriptWhenFirstPlayerSelected()){
-                <div class="flex justify-evenly mt-1">
-                    <select [(ngModel)]="runScriptWhenFirstPlayerSelectedEntityId" class="select select-xs w-full">
-                        @for (availableScript of availableScripts; track $index) {
-                        <option value="{{availableScript.EntityId}}">{{ availableScript.Name }}</option>
-                        }
-                    </select>
-                </div>
-                }
-            </div>
-
-            <div>
-                <input type="checkbox" id="runScriptOnSetScore" class="checkbox-neutral"
-                    [(ngModel)]="runScriptOnSetScore" />
-                <label for="runScriptOnSetScore" class="label text-xs m-1">Run script when target score
-                    reached</label>
-                @if (runScriptOnSetScore()){
-                <div class="flex flex-col mt-1">
-                    <input type="number" id="runScriptOnSetScoreAmount" [(ngModel)]="runScriptOnSetScoreAmount"
-                        class="input input-xs w-full mb-1" />
-                    <select [(ngModel)]="runScriptOnSetScoreEntityId" class="select select-xs w-full">
-                        @for (availableScript of availableScripts; track $index) {
-                        <option value="{{availableScript.EntityId}}">{{ availableScript.Name }}</option>
-                        }
-                    </select>
-                </div>
-                }
-            </div>
-            <div>
-                <input type="checkbox" id="runScriptOnIncreasedScore" class="checkbox-neutral"
-                    [(ngModel)]="runScriptOnIncreasedScore" />
-                <label for="runScriptOnIncreasedScore" class="label text-xs m-1">Run script when score increases</label>
-                @if (runScriptOnIncreasedScore()){
-                <div class="flex justify-evenly mt-1">
-                    <select [(ngModel)]="runScriptOnIncreasedScoreEntityId" class="select select-xs w-full">
-                        @for (availableScript of availableScripts; track $index) {
-                        <option value="{{availableScript.EntityId}}">{{ availableScript.Name }}</option>
-                        }
-                    </select>
-                </div>
-                }
-            </div>
-            <div>
-                <input type="checkbox" id="runScriptOnReducedScore" class="checkbox-neutral"
-                    [(ngModel)]="runScriptOnReducedScore" />
-                <label for="runScriptOnReducedScore" class="label text-xs m-1">Run script when score decreases</label>
-                @if (runScriptOnReducedScore()){
-                <div class="flex justify-evenly mt-1">
-                    <select [(ngModel)]="runScriptOnReducedScoreEntityId" class="select select-xs w-full">
-                        @for (availableScript of availableScripts; track $index) {
-                        <option value="{{availableScript.EntityId}}">{{ availableScript.Name }}</option>
-                        }
-                    </select>
-                </div>
-                }
-            </div>
-            <div>
-                <input type="checkbox" id="runScriptOnNoScore" class="checkbox-neutral"
-                    [(ngModel)]="runScriptOnNoScore" />
-                <label for="runScriptOnNoScore" class="label text-xs m-1">Run script when nothing (0) is scored</label>
-                @if (runScriptOnNoScore()){
-                <div class="flex justify-evenly mt-1">
-                    <select [(ngModel)]="runScriptOnNoScoreEntityId" class="select select-xs w-full">
-                        @for (availableScript of availableScripts; track $index) {
-                        <option value="{{availableScript.EntityId}}">{{ availableScript.Name }}</option>
-                        }
-                    </select>
-                </div>
-                }
-            </div>
-            <div>
-                <input type="checkbox" id="runScriptOnPlayerRemoved" class="checkbox-neutral"
-                    [(ngModel)]="runScriptOnPlayerRemoved" />
-                <label for="runScriptOnPlayerRemoved" class="label text-xs m-1">Run script when a player is
-                    removed</label>
-                @if (runScriptOnPlayerRemoved()){
-                <div class="flex justify-evenly mt-1">
-                    <select [(ngModel)]="runScriptOnPlayerRemovedEntityId" class="select select-xs w-full">
-                        @for (availableScript of availableScripts; track $index) {
-                        <option value="{{availableScript.EntityId}}">{{ availableScript.Name }}</option>
-                        }
-                    </select>
-                </div>
-                }
-            </div>
-            <form method="dialog">
-                <button class="btn btn-outline mt-2 w-full">Close</button>
-            </form>
-        </div>
-    </div>
-</dialog>
-
-<dialog #dialogLog class="modal">
-    <div class="modal-box">
-        <h2 class="text-lg border-b-2 mb-1">Game log</h2>
-        <button (click)="clearLog()" class="btn btn-xs btn-neutral uppercase float-right">clear log</button>
-        @for (item of this.log; track $index) {
-        <span>{{item.DateStamp | date:'shortTime'}}</span>: <span>{{item.Text}}</span><br />
-        }
-        <form method="dialog">
-            <button class="btn btn-outline mt-2 w-full">Close</button>
-        </form>
     </div>
 </dialog>
 

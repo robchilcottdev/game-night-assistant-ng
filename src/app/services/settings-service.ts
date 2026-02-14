@@ -1,6 +1,5 @@
 import { inject, Injectable } from '@angular/core';
 import { LocalStorage } from '../interfaces/enums';
-import { IAvailableScript } from '../interfaces/api-result-entity-state';
 import { ISettings, ISettingsFarkle, ISettingsGeneric, SettingsType } from '../interfaces/settings';
 import { HaApiService } from './api-service';
 
@@ -41,10 +40,12 @@ export class SettingsService {
   public defaultSettings(settingsType: SettingsType): ISettingsGeneric | ISettingsFarkle {
     switch (settingsType) {
       case SettingsType.Generic:
-        return {
+        return {          
           allowNegativeScores: false,
           autoOpenEditScoreOnAdvance: false,
-          autoAdvanceOnScoreUpdate: true
+          autoAdvanceOnScoreUpdate: true,
+          startingScore: 0,
+          targetScore: 0
         } as ISettingsGeneric;
       case SettingsType.Farkle:
         return {

@@ -42,7 +42,8 @@ export class Farkle implements OnInit, AfterViewInit {
   protected currentPlayerIndex = signal(0);
   protected selectedPlayerId = signal(0);
   protected currentEditedPlayerScore = signal(0);
-  protected settings: ISettingsFarkle = this.settingsService.defaultSettings(SettingsType.Farkle) as ISettingsFarkle;
+  protected settingsType: SettingsType = SettingsType.Farkle;
+  protected settings = signal(this.settingsService.defaultSettings(this.settingsType) as ISettingsFarkle);
 
   // computed
   protected selectedPlayer = computed(() => {
@@ -51,15 +52,15 @@ export class Farkle implements OnInit, AfterViewInit {
   });
 
   protected startingScoreIsNotMet = computed(() => {
-    return this.settings.minimumPointsToStart > 0 &&
+    return this.settings().minimumPointsToStart > 0 &&
       !this.selectedPlayer()?.HasStarted === false &&
       this.selectedPlayer()?.Score === 0 &&
-      this.currentEditedPlayerScore() < this.settings.minimumPointsToStart;
+      this.currentEditedPlayerScore() < this.settings().minimumPointsToStart;
   });
 
   // lifecycle hooks
   ngOnInit(): void {
-    this.settings = this.settingsService.getGameSettings(SettingsType.Farkle) as ISettingsFarkle;
+    this.settings.set(this.settingsService.getGameSettings(this.settingsType) as ISettingsFarkle);
   }
 
   ngAfterViewInit(): void {
@@ -175,7 +176,7 @@ export class Farkle implements OnInit, AfterViewInit {
       if (this.selectedPlayer()!.HasStarted) this.selectedPlayer()!.HasStarted = true;
     }
 
-    if (!this.settings.allowNegativeScores && thisScore < 0) thisScore = 0;
+    if (!this.settings().allowNegativeScores && thisScore < 0) thisScore = 0;
 
     this.selectedPlayer()!.Score += thisScore;
     this.log.push({ DateStamp: new Date(), Text: `${this.selectedPlayer()!.Name} scored ${thisScore}` });
@@ -186,9 +187,9 @@ export class Farkle implements OnInit, AfterViewInit {
 
     if (thisScore > previousScore) this.triggerService.runTrigger(AvailableTriggersFarkle.ScoreIncrease);
     if (thisScore < previousScore) this.triggerService.runTrigger(AvailableTriggersFarkle.ScoreDecrease);
-    if (thisScore >= this.settings.targetScore) this.triggerService.runTrigger(AvailableTriggersFarkle.TargetScoreReached);
+    if (thisScore >= this.settings().targetScore) this.triggerService.runTrigger(AvailableTriggersFarkle.TargetScoreReached);
 
-    if (this.settings.autoAdvanceOnScoreUpdate) {
+    if (this.settings().autoAdvanceOnScoreUpdate) {
       return this.advanceTurn();
     }
 
@@ -207,15 +208,15 @@ export class Farkle implements OnInit, AfterViewInit {
       // oh dear... you've farkled out
       if (this.selectedPlayer()!.Farkles === 3) {
         this.selectedPlayer()!.Farkles = 0; // reset to a clean start
-        this.selectedPlayer()!.Score -= this.settings.threeFarklePenalty;
-        if (this.selectedPlayer()!.Score < 0 && !this.settings.allowNegativeScores) this.selectedPlayer()!.Score = 0;
-        this.log.push({ DateStamp: new Date(), Text: `${this.selectedPlayer()!.Name} farkled out for a penalty of ${this.settings.threeFarklePenalty} points!` });
+        this.selectedPlayer()!.Score -= this.settings().threeFarklePenalty;
+        if (this.selectedPlayer()!.Score < 0 && !this.settings().allowNegativeScores) this.selectedPlayer()!.Score = 0;
+        this.log.push({ DateStamp: new Date(), Text: `${this.selectedPlayer()!.Name} farkled out for a penalty of ${this.settings().threeFarklePenalty} points!` });
       }
     }
 
     this.dialogEditScore.nativeElement.close();
 
-    if (this.settings.autoAdvanceOnScoreUpdate) {
+    if (this.settings().autoAdvanceOnScoreUpdate) {
       this.advanceTurn();
     }
   }
@@ -228,7 +229,7 @@ export class Farkle implements OnInit, AfterViewInit {
     }
     this.log.push({ DateStamp: new Date(), Text: `It's your turn, ${this.players()[this.currentPlayerIndex()].Name}` });
 
-    if (this.settings.autoOpenEditScoreOnAdvance) {
+    if (this.settings().autoOpenEditScoreOnAdvance) {
       this.selectedPlayerId.set(this.players()[this.currentPlayerIndex()].Id);
       this.editScore(this.selectedPlayerId());
     }
@@ -255,12 +256,12 @@ export class Farkle implements OnInit, AfterViewInit {
   }
 
   resetSettings() {
-    this.settings = this.settingsService.defaultSettings(SettingsType.Farkle) as ISettingsFarkle;
+    this.settings.set(this.settingsService.defaultSettings(this.settingsType) as ISettingsFarkle);
   }
 
   saveSettings() {
     this.dialogSettings.nativeElement.close();
-    this.settingsService.saveGameSettings(SettingsType.Farkle, this.settings);
+    this.settingsService.saveGameSettings(this.settingsType, this.settings());
   }
 
   closeScriptSettingsDialog(){

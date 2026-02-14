@@ -1,10 +1,9 @@
 import { OnInit, Component, inject, signal, computed } from '@angular/core';
 import { HaApiService } from '../../services/api-service';
 import { IApiResultEntityState, IAvailableScript } from '../../interfaces/api-result-entity-state';
-import { AvailableTriggersFarkle, LocalStorage } from '../../interfaces/enums';
+import { LocalStorage } from '../../interfaces/enums';
 import { Dock } from "../../components/dock/dock";
 import { FormsModule } from '@angular/forms';
-import { IScriptTrigger } from '../../interfaces/settings';
 
 @Component({
   selector: 'app-settings',
