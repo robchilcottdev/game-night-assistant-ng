@@ -44,8 +44,8 @@ export class SettingsService {
           allowNegativeScores: false,
           autoOpenEditScoreOnAdvance: false,
           autoAdvanceOnScoreUpdate: true,
-          startingScore: 0,
-          targetScore: 0
+          startingScore: undefined,
+          targetScore: undefined
         } as ISettingsGeneric;
       case SettingsType.Farkle:
         return {

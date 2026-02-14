@@ -64,7 +64,7 @@
                             }
                         </span>
                         <span
-                            class="{{ player.Score > settings().targetScore ? 'font-extrabold':'' }} mr-2">{{player.Name}}</span>
+                            class="{{ player.Score > settings().targetScore! ? 'font-extrabold':'' }} mr-2">{{player.Name}}</span>
                         <button (click)="editName(player.Id)" class="btn btn-xs mr-2">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                                 stroke="currentColor" class="size-6">
@@ -74,7 +74,7 @@
                         </button>
                     </td>
                     <td><span
-                            class="{{ player.Score > settings().targetScore ? 'font-extrabold':'' }} mr-2">{{player.Score}}</span>
+                            class="{{ player.Score > settings().targetScore! ? 'font-extrabold':'' }} mr-2">{{player.Score}}</span>
                         <button (click)="editScore(player.Id)" class="btn btn-xs ml-2">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                                 stroke="currentColor" class="size-6">
@@ -222,7 +222,7 @@
 <dialog #dialogEditScore class="modal">
     <div class="modal-box">
         @if (selectedPlayer()){
-        <h3 class="text-lg font-bold mb-2">{{ selectedPlayer()?.Name ?? "" }}, you require {{ settings().targetScore -
+        <h3 class="text-lg font-bold mb-2">{{ selectedPlayer()?.Name ?? "" }}, you require {{ settings().targetScore! -
             selectedPlayer()!.Score}} {{ selectedPlayer()!.Farkles === 2 ? "Watch it, you're on two farkles!" : "" }}
         </h3>
         }

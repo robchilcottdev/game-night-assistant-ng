@@ -262,7 +262,7 @@
             <div>
                 <div class="text-xs mb-1">Target score (optional).
                 </div>
-                <input type="number" id="startingScore" min="0" class="input input-xs mb-2"
+                <input type="number" id="targetScore" min="0" class="input input-xs mb-2"
                     [(ngModel)]="settings().targetScore" />
             </div>
             <div>
@@ -333,7 +333,11 @@
 
 <dialog #dialogEditScore class="modal">
     <div class="modal-box">
+        @if(settings().targetScore != undefined){
+        <h3 class="text-lg font-bold mb-2">{{ selectedPlayer()?.Name ?? "" }}, your target is {{ settings().targetScore }}</h3>
+        }@else {
         <h3 class="text-lg font-bold mb-2">Set score for {{ selectedPlayer()?.Name ?? "" }}</h3>
+        }
         <input #inputEditedScore type="number" [(ngModel)]="currentEditedPlayerScore" (keyup.enter)="confirmEditScore()"
             class="input mb-2 w-full" />
 

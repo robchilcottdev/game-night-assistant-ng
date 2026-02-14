@@ -11,12 +11,12 @@ export interface ISettings {
     allowNegativeScores: boolean,
     autoAdvanceOnScoreUpdate: boolean,
     autoOpenEditScoreOnAdvance: boolean,
-    targetScore: number,
-    startingScore: number
+    targetScore?: number,
+    startingScore?: number
 }
 
 export interface ISettingsFarkle extends ISettings {
-    targetScore: number,
+    targetScore?: number,
     minimumPointsToStart: number,
     threeFarklePenalty: number
 }

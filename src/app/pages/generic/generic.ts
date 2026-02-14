@@ -45,7 +45,6 @@ export class Generic implements OnInit, AfterViewInit {
   protected currentPlayerIndex = signal(0);
   protected selectedPlayerId = signal(0);
   protected playDirection = signal<PlayDirection>(PlayDirection.Clockwise);
-  protected startingScore = signal(0);
   protected modifyScoreAmount = signal(1);
   protected currentEditedPlayerScore = signal(0);
   protected settingsType: SettingsType = SettingsType.Generic;
@@ -95,7 +94,7 @@ export class Generic implements OnInit, AfterViewInit {
     if (name.length === 0) return;
 
     this.players.update(values => {
-      return [...values, { Id: this.newPlayerId + 1, Name: name, Score: this.startingScore(), Active: true, IsStartingPlayer: false }];
+      return [...values, { Id: this.newPlayerId + 1, Name: name, Score: this.settings().startingScore ?? 0, Active: true, IsStartingPlayer: false }];
     });
     this.log.push({ DateStamp: new Date(), Text: `Added player ${name}` });
     this.newPlayerId++;
@@ -230,7 +229,7 @@ export class Generic implements OnInit, AfterViewInit {
   resetScores() {
     let players = [...this.players()];
     for (const player of players) {
-      player.Score = this.startingScore();
+      player.Score = this.settings().startingScore ?? 0;
     }
     this.players.set(players);
     this.log.push({ DateStamp: new Date(), Text: 'Scores were reset' });

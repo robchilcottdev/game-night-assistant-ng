@@ -187,7 +187,7 @@ export class Farkle implements OnInit, AfterViewInit {
 
     if (thisScore > previousScore) this.triggerService.runTrigger(AvailableTriggersFarkle.ScoreIncrease);
     if (thisScore < previousScore) this.triggerService.runTrigger(AvailableTriggersFarkle.ScoreDecrease);
-    if (thisScore >= this.settings().targetScore) this.triggerService.runTrigger(AvailableTriggersFarkle.TargetScoreReached);
+    if (thisScore >= this.settings().targetScore!) this.triggerService.runTrigger(AvailableTriggersFarkle.TargetScoreReached);
 
     if (this.settings().autoAdvanceOnScoreUpdate) {
       return this.advanceTurn();
