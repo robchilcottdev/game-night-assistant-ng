@@ -8,7 +8,9 @@ export enum LocalStorage {
     gnaSettingsGeneric = 'gna-settings-generic',
     gnaSettingsFarkle = 'gna-settings-farkle',
     gnaScriptTriggersFarkle = 'gna-script-triggers-farkle',
-    gnaScriptTriggersGeneric = 'gna-script-triggers-generic'
+    gnaScriptTriggersGeneric = 'gna-script-triggers-generic',
+    gnaGameStateGeneric = 'gna-state-generic',
+    gnaGameStateFarkle = 'gna-state-farkle'
 }
 
 export enum AvailableTriggersFarkle {

@@ -10,6 +10,7 @@ import { TriggerService } from '../../services/trigger-service';
 import { HaApiService } from '../../services/api-service';
 import { TriggerSettings } from "../../components/trigger-settings/trigger-settings";
 import { ISettingsGeneric, SettingsType } from '../../interfaces/settings';
+import { GameStateGeneric } from '../../interfaces/game-state';
 
 @Component({
   selector: 'app-generic',
@@ -62,6 +63,7 @@ export class Generic implements OnInit, AfterViewInit {
   // lifecycle hooks
   ngOnInit(): void {
     this.settings.set(this.settingsService.getGameSettings(this.settingsType) as ISettingsGeneric);
+    this.loadGameState();
   }
 
   ngAfterViewInit(): void {
@@ -102,12 +104,14 @@ export class Generic implements OnInit, AfterViewInit {
     this.inputAddName.nativeElement.value = "";
 
     this.triggerService.runTrigger(AvailableTriggersGeneric.PlayerAdded);
+    this.saveGameState();
   }
 
   selectPlayer(playerId: number) {
     this.selectedPlayerId.set(playerId);
     this.currentPlayerIndex.set(this.players().findIndex(p => p.Id === playerId));
     this.log.push({ DateStamp: new Date(), Text: `It's your turn, ${this.players()[this.currentPlayerIndex()].Name}` });
+    this.saveGameState();
   }
 
   confirmEditName() {
@@ -116,11 +120,13 @@ export class Generic implements OnInit, AfterViewInit {
     this.selectedPlayer()!.Name = this.inputEditName.nativeElement.value;
     this.dialogEditName.nativeElement.close();
     this.inputEditName.nativeElement.value = "";
+    this.saveGameState();
   }
 
   incrementScore() {
     const amount = parseInt(this.inputModifyScoreAmount.nativeElement.value);
     this.currentEditedPlayerScore.update(value => value + amount);
+    this.saveGameState();
   }
 
   decrementScore() {
@@ -134,6 +140,7 @@ export class Generic implements OnInit, AfterViewInit {
         this.currentEditedPlayerScore.set(0);
       }
     }
+    this.saveGameState();
   }
 
   confirmEditScore() {
@@ -153,6 +160,8 @@ export class Generic implements OnInit, AfterViewInit {
     if (thisScore > previousScore) this.triggerService.runTrigger(AvailableTriggersGeneric.ScoreIncrease);
     if (thisScore < previousScore) this.triggerService.runTrigger(AvailableTriggersGeneric.ScoreDecrease);
    
+    this.saveGameState();
+
     if (this.settings().autoAdvanceOnScoreUpdate) {
       return this.advanceTurn();
     }
@@ -165,6 +174,8 @@ export class Generic implements OnInit, AfterViewInit {
     playerToDelete!.Active = !playerToDelete!.Active;
     this.players.set(players);
     
+    this.saveGameState();
+
     this.triggerService.runTrigger(AvailableTriggersGeneric.PlayerRemoved);
   }
 
@@ -178,6 +189,8 @@ export class Generic implements OnInit, AfterViewInit {
     this.currentPlayerIndex.set(this.players().findIndex(p => p.Id === playerId));
     this.dialogEditName.nativeElement.close();
 
+    this.saveGameState();
+
     this.triggerService.runTrigger(AvailableTriggersGeneric.FirstPlayerSelected);
   }
 
@@ -189,12 +202,14 @@ export class Generic implements OnInit, AfterViewInit {
       this.log.push({ DateStamp: new Date(), Text: `Play direction changed to clockwise` });
       this.playDirection.set(PlayDirection.Clockwise);
     }
+    this.saveGameState();
   }
 
   randomiseTurn() {
     this.log.push({ DateStamp: new Date(), Text: `Randomising starting player...` });
     this.currentPlayerIndex.set(Math.floor(Math.random() * this.players().length));
     this.setStartingPlayer(this.players()[this.currentPlayerIndex()].Id);
+    this.saveGameState();
   }
 
   advanceTurn() {
@@ -215,6 +230,8 @@ export class Generic implements OnInit, AfterViewInit {
     } while (!this.players()[this.currentPlayerIndex()].Active); // advance turn until we're not on a deleted/de-activated player
     this.log.push({ DateStamp: new Date(), Text: `It's your turn, ${this.players()[this.currentPlayerIndex()].Name}` });
 
+    this.saveGameState();
+
     if (this.settings().autoOpenEditScoreOnAdvance) {
       this.selectedPlayerId.set(this.players()[this.currentPlayerIndex()].Id);
       this.currentEditedPlayerScore.set(this.players()[this.currentPlayerIndex()].Score);
@@ -224,6 +241,7 @@ export class Generic implements OnInit, AfterViewInit {
 
   clearLog() {
     this.log = [];
+    this.saveGameState();
   }
 
   resetScores() {
@@ -232,7 +250,9 @@ export class Generic implements OnInit, AfterViewInit {
       player.Score = this.settings().startingScore ?? 0;
     }
     this.players.set(players);
+    
     this.log.push({ DateStamp: new Date(), Text: 'Scores were reset' });
+    this.saveGameState();
   }
 
   getPlayersByScoreDescending() {
@@ -247,6 +267,31 @@ export class Generic implements OnInit, AfterViewInit {
   saveSettings() {
     this.dialogSettings.nativeElement.close();
     this.settingsService.saveGameSettings(this.settingsType, this.settings());
+  }
+
+  loadGameState() {
+    let loadedGameState = this.settingsService.loadGameState(SettingsType.Generic) as GameStateGeneric;
+    if (loadedGameState){
+      this.currentEditedPlayerScore.set(loadedGameState.currentEditedPlayerScore);
+      this.currentPlayerIndex.set(loadedGameState.currentPlayerIndex);
+      this.log = loadedGameState.log;
+      this.players.set(loadedGameState.players);
+      this.selectedPlayerId.set(loadedGameState.selectedPlayerId);
+      this.playDirection.set(loadedGameState.playDirection);
+    }
+  }
+
+  saveGameState() {
+    let gameState : GameStateGeneric = {
+      currentEditedPlayerScore: this.currentEditedPlayerScore(),
+      currentPlayerIndex: this.currentPlayerIndex(),
+      log: this.log,
+      players: this.players(),
+      selectedPlayerId: this.selectedPlayerId(),
+      playDirection: this.playDirection()
+    };
+
+    this.settingsService.saveGameState(SettingsType.Generic, gameState);
   }
 
   // Dock buttons

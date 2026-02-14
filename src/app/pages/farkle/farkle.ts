@@ -9,6 +9,7 @@ import { FormsModule } from '@angular/forms';
 import { ISettingsFarkle, SettingsType } from '../../interfaces/settings';
 import { AvailableTriggersFarkle } from '../../interfaces/enums';
 import { TriggerSettings } from "../../components/trigger-settings/trigger-settings";
+import { GameStateFarkle } from '../../interfaces/game-state';
 
 @Component({
   selector: 'app-farkle',
@@ -61,6 +62,7 @@ export class Farkle implements OnInit, AfterViewInit {
   // lifecycle hooks
   ngOnInit(): void {
     this.settings.set(this.settingsService.getGameSettings(this.settingsType) as ISettingsFarkle);
+    this.loadGameState();
   }
 
   ngAfterViewInit(): void {
@@ -85,6 +87,7 @@ export class Farkle implements OnInit, AfterViewInit {
     this.dialogAddPlayer.nativeElement.close();
     this.inputAddName.nativeElement.value = "";
 
+    this.saveGameState();
     this.triggerService.runTrigger(AvailableTriggersFarkle.PlayerAdded);    
   }
 
@@ -99,6 +102,7 @@ export class Farkle implements OnInit, AfterViewInit {
     this.selectedPlayer()!.Name = this.inputEditName.nativeElement.value;
     this.dialogEditName.nativeElement.close();
     this.inputEditName.nativeElement.value = "";
+    this.saveGameState();
   }
 
   setStartingPlayer(playerId: number) {
@@ -111,6 +115,8 @@ export class Farkle implements OnInit, AfterViewInit {
     this.currentPlayerIndex.set(this.players().findIndex(p => p.Id === playerId));
     this.dialogEditName.nativeElement.close();
 
+    this.saveGameState();
+
     this.triggerService.runTrigger(AvailableTriggersFarkle.FirstPlayerSelected);
   }
 
@@ -118,6 +124,7 @@ export class Farkle implements OnInit, AfterViewInit {
     this.log.push({ DateStamp: new Date(), Text: `Randomising starting player...` });
     this.currentPlayerIndex.set(Math.floor(Math.random() * this.players().length));
     this.setStartingPlayer(this.players()[this.currentPlayerIndex()].Id);
+    this.saveGameState();
   }
 
   scoreFourOfAKind(){
@@ -152,6 +159,7 @@ export class Farkle implements OnInit, AfterViewInit {
 
   addScore(amount: number) {
     this.currentEditedPlayerScore.update(v => v + amount);
+    this.saveGameState();
   }
 
   editScore(playerId: number) {
@@ -189,6 +197,8 @@ export class Farkle implements OnInit, AfterViewInit {
     if (thisScore < previousScore) this.triggerService.runTrigger(AvailableTriggersFarkle.ScoreDecrease);
     if (thisScore >= this.settings().targetScore!) this.triggerService.runTrigger(AvailableTriggersFarkle.TargetScoreReached);
 
+    this.saveGameState();
+
     if (this.settings().autoAdvanceOnScoreUpdate) {
       return this.advanceTurn();
     }
@@ -216,6 +226,8 @@ export class Farkle implements OnInit, AfterViewInit {
 
     this.dialogEditScore.nativeElement.close();
 
+    this.saveGameState();
+
     if (this.settings().autoAdvanceOnScoreUpdate) {
       this.advanceTurn();
     }
@@ -233,10 +245,12 @@ export class Farkle implements OnInit, AfterViewInit {
       this.selectedPlayerId.set(this.players()[this.currentPlayerIndex()].Id);
       this.editScore(this.selectedPlayerId());
     }
+    this.saveGameState();
   }
 
   clearLog() {
     this.log = [];
+    this.saveGameState();
   }
 
   resetScores() {
@@ -248,6 +262,7 @@ export class Farkle implements OnInit, AfterViewInit {
     }
     this.players.set(players);
     this.log.push({ DateStamp: new Date(), Text: 'Scores were reset' });
+    this.saveGameState();
   }
 
   getPlayersByScoreDescending() {
@@ -267,6 +282,29 @@ export class Farkle implements OnInit, AfterViewInit {
   closeScriptSettingsDialog(){
     this.dialogScriptSettings.nativeElement.close();
   }
+
+  loadGameState() {
+      let loadedGameState = this.settingsService.loadGameState(SettingsType.Farkle) as GameStateFarkle;
+      if (loadedGameState){
+        this.currentEditedPlayerScore.set(loadedGameState.currentEditedPlayerScore);
+        this.currentPlayerIndex.set(loadedGameState.currentPlayerIndex);
+        this.log = loadedGameState.log;
+        this.players.set(loadedGameState.players);
+        this.selectedPlayerId.set(loadedGameState.selectedPlayerId);        
+      }
+    }
+  
+    saveGameState() {
+      let gameState : GameStateFarkle = {
+        currentEditedPlayerScore: this.currentEditedPlayerScore(),
+        currentPlayerIndex: this.currentPlayerIndex(),
+        log: this.log,
+        players: this.players(),
+        selectedPlayerId: this.selectedPlayerId()        
+      };
+  
+      this.settingsService.saveGameState(SettingsType.Farkle, gameState);
+    }
 
   // Dock buttons
   doReload() {

@@ -2,6 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { LocalStorage } from '../interfaces/enums';
 import { ISettings, ISettingsFarkle, ISettingsGeneric, SettingsType } from '../interfaces/settings';
 import { HaApiService } from './api-service';
+import { GameStateFarkle, GameStateGeneric } from '../interfaces/game-state';
 
 @Injectable({
   providedIn: 'root',
@@ -57,5 +58,32 @@ export class SettingsService {
           threeFarklePenalty: 1000
         } as ISettingsFarkle
     }
+  }
+
+  public saveGameState(settingsType : SettingsType, gameState : GameStateGeneric | GameStateFarkle) : void {
+    switch (settingsType) {
+      case SettingsType.Generic:
+        return localStorage.setItem(LocalStorage.gnaGameStateGeneric, JSON.stringify(gameState));
+      case SettingsType.Farkle:
+        return localStorage.setItem(LocalStorage.gnaGameStateFarkle, JSON.stringify(gameState));        
+    }
+  }
+
+  public loadGameState(settingsType : SettingsType) : GameStateGeneric | GameStateFarkle | undefined {
+    switch (settingsType) {
+      case SettingsType.Generic:
+        if (localStorage.getItem(LocalStorage.gnaGameStateGeneric)) {
+          return JSON.parse(localStorage.getItem(LocalStorage.gnaGameStateGeneric)!);
+        }
+        break;
+      case SettingsType.Farkle:
+        if (localStorage.getItem(LocalStorage.gnaGameStateFarkle)) {
+          return JSON.parse(localStorage.getItem(LocalStorage.gnaGameStateFarkle)!);
+        }
+        break;
+      default:
+        break; 
+    }
+    return undefined;
   }
 }
