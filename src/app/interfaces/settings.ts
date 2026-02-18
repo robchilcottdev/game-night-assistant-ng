@@ -26,8 +26,13 @@ export interface ISettingsGeneric extends ISettings {
     
 }
 
+export interface ISettingsSkullKing extends ISettings {
+    
+}
+
 export enum SettingsType {
     Generic,
-    Farkle
+    Farkle,
+    SkullKing
 }
 

@@ -10,7 +10,8 @@ export enum LocalStorage {
     gnaScriptTriggersFarkle = 'gna-script-triggers-farkle',
     gnaScriptTriggersGeneric = 'gna-script-triggers-generic',
     gnaGameStateGeneric = 'gna-state-generic',
-    gnaGameStateFarkle = 'gna-state-farkle'
+    gnaGameStateFarkle = 'gna-state-farkle',
+    gnaGameStateSkullKing = 'gna-state-skull-king'
 }
 
 export enum AvailableTriggersFarkle {
@@ -39,4 +40,8 @@ export enum AvailableTriggersGeneric {
     ZeroScored = "Zero scored",
     PlayerAdded = "Player added",
     PlayerRemoved = "Player removed"
+}
+
+export enum AvailableTriggersSkullKing {
+    
 }

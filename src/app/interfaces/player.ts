@@ -10,3 +10,7 @@ export interface IFarklePlayer extends IPlayer {
     Farkles: number;
     HasStarted: boolean;
 }
+
+export interface ISkullKingPlayer extends IPlayer {
+    
+}
