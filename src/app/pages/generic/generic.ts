@@ -125,19 +125,18 @@ export class Generic implements OnInit, AfterViewInit {
 
   incrementScore() {
     const amount = parseInt(this.inputModifyScoreAmount.nativeElement.value);
-    this.currentEditedPlayerScore.update(value => value + amount);
+    this.selectedPlayer()!.Score += amount;
     this.saveGameState();
   }
 
   decrementScore() {
-    let amount = parseInt(this.inputModifyScoreAmount.nativeElement.value);
-
-    this.currentEditedPlayerScore.update(value => value - amount);
+    const amount = parseInt(this.inputModifyScoreAmount.nativeElement.value);
+    this.selectedPlayer()!.Score -= amount;
 
     // correct a negative score if rules prevent them
     if (!this.settings().allowNegativeScores) {
-      if ((this.currentEditedPlayerScore() - amount) < 0) {
-        this.currentEditedPlayerScore.set(0);
+      if ((this.selectedPlayer()!.Score - amount) < 0) {
+        this.selectedPlayer()!.Score = 0;
       }
     }
     this.saveGameState();
@@ -153,8 +152,6 @@ export class Generic implements OnInit, AfterViewInit {
 
     this.selectedPlayer()!.Score = thisScore;
     this.log.push({ DateStamp: new Date(), Text: `${this.selectedPlayer()!.Name} score changed to ${thisScore}` });
-
-    this.modifyScoreAmount.set(0);
 
     if (thisScore === previousScore) this.triggerService.runTrigger(AvailableTriggersGeneric.ZeroScored);
     if (thisScore > previousScore) this.triggerService.runTrigger(AvailableTriggersGeneric.ScoreIncrease);
@@ -228,12 +225,13 @@ export class Generic implements OnInit, AfterViewInit {
         }
       }
     } while (!this.players()[this.currentPlayerIndex()].Active); // advance turn until we're not on a deleted/de-activated player
-    this.log.push({ DateStamp: new Date(), Text: `It's your turn, ${this.players()[this.currentPlayerIndex()].Name}` });
 
+    this.selectedPlayerId.set(this.players()[this.currentPlayerIndex()].Id);
+
+    this.log.push({ DateStamp: new Date(), Text: `It's your turn, ${this.players()[this.currentPlayerIndex()].Name}` });
     this.saveGameState();
 
     if (this.settings().autoOpenEditScoreOnAdvance) {
-      this.selectedPlayerId.set(this.players()[this.currentPlayerIndex()].Id);
       this.currentEditedPlayerScore.set(this.players()[this.currentPlayerIndex()].Score);
       this.editScore(this.selectedPlayerId());
     }

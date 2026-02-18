@@ -12,7 +12,7 @@
         </span>
         <h1 class="text-xl">Generic Score Keeper</h1>
     </div>
-    <div class="flex-row m-2">
+    <div class="flex-row flex-wrap m-2">
         <button (click)="addPlayer()" class="btn btn-primary m-1">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                 stroke="currentColor" class="size-6">
@@ -53,6 +53,10 @@
         <button (click)="showLeaderboard()" [disabled]="players().length < 2"
             class="btn btn-outline uppercase">Leaderboard</button>
         <button (click)="resetScores()" class="btn btn-error m-1 uppercase">reset</button>
+        <div class="text-sm mr-2">Modify selected player score by</div>
+        <input #inputModifyScoreAmount type="number" min="1" [(ngModel)]="modifyScoreAmount" class="input w-16 mr-2" />
+        <button (click)="incrementScore()" class="btn bg-success">+</button>
+        <button (click)="decrementScore()" class="btn bg-error">-</button>
     </div>
 
     <div id="scoreboard" class="overflow-x-auto">
@@ -135,7 +139,7 @@
 <dialog #dialogInfo class="modal">
     <div class="modal-box">
         <h2 class="text-lg border-b-2 mb-1">Welcome to Generic Score Keeper</h2>
-        
+
         <p class="mt-2 mb-2 text-neutral-600">
             Perfect for when the only thing you need to keep is... uh... the score.
         </p>
@@ -281,18 +285,19 @@
                     [(ngModel)]="settings().autoOpenEditScoreOnAdvance" />
                 <label for="autoOpenEditScoreOnAdvance" class="label text-xs m-1">Open Edit Score on turn
                     advance</label>
-            </div>  
-        <div class="flex justify-between mt-2">
-            <button (click)="resetSettings()" class="btn btn-warning">Reset to defaults</button>
-            <button (click)="saveSettings()" class="btn btn-primary">Close</button>
-        </div>
-        <form method="dialog"></form>                 
+            </div>
+            <div class="flex justify-between mt-2">
+                <button (click)="resetSettings()" class="btn btn-warning">Reset to defaults</button>
+                <button (click)="saveSettings()" class="btn btn-primary">Close</button>
+            </div>
+            <form method="dialog"></form>
         </div>
     </div>
 </dialog>
 
 <dialog #dialogScriptSettings class="modal">
-    <app-trigger-settings (closeDialogRequested)="closeScriptSettingsDialog()" [settingsType]="settingsType"></app-trigger-settings>
+    <app-trigger-settings (closeDialogRequested)="closeScriptSettingsDialog()"
+        [settingsType]="settingsType"></app-trigger-settings>
 </dialog>
 
 <dialog #dialogAddPlayer class="modal">
@@ -334,22 +339,13 @@
 <dialog #dialogEditScore class="modal">
     <div class="modal-box">
         @if(settings().targetScore != undefined){
-        <h3 class="text-lg font-bold mb-2">{{ selectedPlayer()?.Name ?? "" }}, your target is {{ settings().targetScore }}</h3>
+        <h3 class="text-lg font-bold mb-2">{{ selectedPlayer()?.Name ?? "" }}, your target is {{ settings().targetScore
+            }}</h3>
         }@else {
         <h3 class="text-lg font-bold mb-2">Set score for {{ selectedPlayer()?.Name ?? "" }}</h3>
         }
         <input #inputEditedScore type="number" [(ngModel)]="currentEditedPlayerScore" (keyup.enter)="confirmEditScore()"
             class="input mb-2 w-full" />
-
-        <div class="flex">
-            <div class="text-sm mr-2">Modify by</div>
-            <input #inputModifyScoreAmount type="number" min="0" [(ngModel)]="modifyScoreAmount" class="input mr-2" />
-            <button (click)="incrementScore()" class="btn bg-success">+</button>
-            <button (click)="decrementScore()" class="btn bg-error">-</button>
-        </div>
-        <div class="text-xs mt-2 mb-2">
-            Unmodified score: {{ selectedPlayer()?.Score }}
-        </div>
         <div class="flex justify-end gap-1 mt-2">
             <button (click)="confirmEditScore()" class="btn btn-primary">
                 Confirm
