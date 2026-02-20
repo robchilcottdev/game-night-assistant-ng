@@ -12,5 +12,15 @@ export interface IFarklePlayer extends IPlayer {
 }
 
 export interface ISkullKingPlayer extends IPlayer {
-    
+    rounds: ISkullKingRound[]
+}
+
+export interface ISkullKingRound {
+    bid: number,
+    bidSet: boolean,
+    made: number,
+    bidPoints: number,
+    bonusPoints: number,
+    started: boolean,
+    complete: boolean
 }

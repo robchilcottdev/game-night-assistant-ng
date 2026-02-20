@@ -12,85 +12,64 @@
         </span>
         <h1 class="text-xl">Skull King</h1>
     </div>
-    <div class="flex-row m-2">
-        <button (click)="addPlayer()" class="btn btn-primary m-1">
+    <div class="flex flex-row flex-wrap gap-2 justify-left ml-2">
+        <button (click)="addPlayer()" class="btn btn-primary">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                 stroke="currentColor" class="size-6">
                 <path stroke-linecap="round" stroke-linejoin="round"
                     d="M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
             </svg>
         </button>
-        <button (click)="randomiseTurn()" [disabled]="players().length < 2" class="btn m-1">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                stroke="currentColor" class="size-6">
-                <path stroke-linecap="round" stroke-linejoin="round"
-                    d="M19.5 12c0-1.232-.046-2.453-.138-3.662a4.006 4.006 0 0 0-3.7-3.7 48.678 48.678 0 0 0-7.324 0 4.006 4.006 0 0 0-3.7 3.7c-.017.22-.032.441-.046.662M19.5 12l3-3m-3 3-3-3m-12 3c0 1.232.046 2.453.138 3.662a4.006 4.006 0 0 0 3.7 3.7 48.656 48.656 0 0 0 7.324 0 4.006 4.006 0 0 0 3.7-3.7c.017-.22.032-.441.046-.662M4.5 12l3 3m-3-3-3 3" />
-            </svg>
-        </button>        
-        <button (click)="advanceTurn()" [disabled]="players().length < 2" class="btn m-1">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                stroke="currentColor" class="size-6">
-                <path stroke-linecap="round" stroke-linejoin="round"
-                    d="M3 8.689c0-.864.933-1.406 1.683-.977l7.108 4.061a1.125 1.125 0 0 1 0 1.954l-7.108 4.061A1.125 1.125 0 0 1 3 16.811V8.69ZM12.75 8.689c0-.864.933-1.406 1.683-.977l7.108 4.061a1.125 1.125 0 0 1 0 1.954l-7.108 4.061a1.125 1.125 0 0 1-1.683-.977V8.69Z" />
-            </svg>
-        </button>
+
+        <button (click)="showMakeBid()" [disabled]="!showBidButton()"
+            class="btn btn-outline uppercase">Bid</button>
+
+        <button (click)="showScoreRound()" [disabled]="!showScoreRoundButton()"
+            class="btn btn-outline uppercase">Score round</button>
+
         <button (click)="showLeaderboard()" [disabled]="players().length < 2"
             class="btn btn-outline uppercase">Leaderboard</button>
-        <button (click)="resetScores()" class="btn btn-error m-1 uppercase">reset</button>
+
+        <button (click)="resetScores()" class="btn btn-error uppercase">reset</button>
     </div>
 
     <div id="scoreboard" class="overflow-x-auto">
-        <table class="table table-zebra text-lg">
+        <table class="table table-zebra table-sm text-lg">
             <thead>
                 <tr>
-                    <th>Player name</th>
-                    <th>Score</th>
-                </tr>
-            </thead>
-            <tbody>
-                @for (player of players(); track player.Id) {
-                <tr class="{{ players()[currentPlayerIndex()].Id === player.Id ? 'bg-accent' : ''}}">
+                    <td></td>
+                    @for (player of players(); track player.Id) {
                     <td>
                         <span class="inline-block">
                             @if (player.IsStartingPlayer) {
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                                 stroke="currentColor" class="size-6">
                                 <circle cx="12" cy="9" r="7.5" stroke-linecap="round" stroke-linejoin="round" />
-
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M11 8.5 12 7.5v5" />
-
                                 <path stroke-linecap="round" stroke-linejoin="round"
                                     d="m9 15.5-1.5 5.25 4.5-1.5 4.5 1.5-1.5-5.25" />
                             </svg>
                             }
                         </span>
-                        <span (click)="selectPlayer(player.Id)"
-                            class="{{ !player.Active ? 'line-through text-gray-500':'' }} hover:cursor-pointer mr-2">{{player.Name}}</span>
-                        <button (click)="editName(player.Id)" class="btn btn-xs mr-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                                stroke="currentColor" class="size-6">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
-                            </svg>
-                        </button>                       
+                        <span>{{player.Name}}</span>
                     </td>
-                    <td><span class="{{ !player.Active ? 'text-gray-500':'' }}">{{player.Score}}</span>
-                        <button (click)="editScore(player.Id)" class="btn btn-xs ml-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                                stroke="currentColor" class="size-6">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
-                            </svg>
-                        </button>
-                    </td>
+                    }
                 </tr>
-                } @empty {
+            </thead>
+            <tbody>
+
+                @if (players().length > 0) {
+                @for (round of players()[0]?.rounds; track $index) {
                 <tr>
-                    <td></td>
-                    <td>Add player above</td>
-                    <td></td>
-                    <td></td>
+                    
+                    <td><strong>{{$index + 1}}</strong></td>
+                    @for (player of players(); track player.Id) {
+                    <td><strong><span class="bg-accent p-1">{{ player.rounds[currentRound()].bid }}</span>
+                        /<span class="p-1 {{ player.rounds[currentRound()].bid === player.rounds[currentRound()].made ? 'bg-success':''}}">{{ player.rounds[currentRound()].made }}</span></strong> {{ player.rounds[currentRound()].bidPoints + player.rounds[currentRound()].bonusPoints }}</td>
+                    }
                 </tr>
+                }
+
                 }
             </tbody>
         </table>
@@ -103,7 +82,7 @@
 <dialog #dialogInfo class="modal">
     <div class="modal-box">
         <h2 class="text-lg border-b-2 mb-1">Welcome to Skull King</h2>
-        
+
         <p class="mt-2 mb-2 text-neutral-600">
             Info text placeholder
         </p>
@@ -141,19 +120,20 @@
                     [(ngModel)]="settings().autoOpenEditScoreOnAdvance" />
                 <label for="autoOpenEditScoreOnAdvance" class="label text-xs m-1">Open Edit Score on turn
                     advance</label>
-            </div>  
-        <div class="flex justify-between mt-2">
-            <button (click)="resetSettings()" class="btn btn-warning">Reset to defaults</button>
-            <button (click)="saveSettings()" class="btn btn-primary">Close</button>
-        </div>
-        <form method="dialog"></form>                 
+            </div>
+            <div class="flex justify-between mt-2">
+                <button (click)="resetSettings()" class="btn btn-warning">Reset to defaults</button>
+                <button (click)="saveSettings()" class="btn btn-primary">Close</button>
+            </div>
+            <form method="dialog"></form>
         </div>
     </div>
 </dialog>
 
-<dialog #dialogScriptSettings class="modal">
-    <app-trigger-settings (closeDialogRequested)="closeScriptSettingsDialog()" [settingsType]="settingsType"></app-trigger-settings>
-</dialog>
+<!-- <dialog #dialogScriptSettings class="modal">
+    <app-trigger-settings (closeDialogRequested)="closeScriptSettingsDialog()"
+        [settingsType]="settingsType"></app-trigger-settings>
+</dialog> -->
 
 <dialog #dialogAddPlayer class="modal">
     <div class="modal-box">
@@ -167,49 +147,6 @@
                 <button class="btn btn-outline mt-2 w-full">Close</button>
             </form>
         </div>
-    </div>
-</dialog>
-
-<dialog #dialogEditName class="modal">
-    <div class="modal-box">
-        <div class="flex-col">
-            <input #inputEditName placeholder="Enter player name" value="{{ selectedPlayer()?.Name ?? '' }}"
-                class="input w-full" />
-
-            @if (!selectedPlayer()?.IsStartingPlayer) {
-            <button (click)="setStartingPlayer(selectedPlayer()!.Id)" class="btn btn-secondary mt-2 w-full">Make
-                starting player</button>
-            }
-
-            <button (click)="confirmEditName()" class="btn btn-primary mt-2 w-full">
-                Confirm
-            </button>
-            <form method="dialog">
-                <button class="btn btn-outline mt-2 w-full">Close</button>
-            </form>
-        </div>
-    </div>
-</dialog>
-
-<dialog #dialogEditScore class="modal">
-    <div class="modal-box">
-        @if(settings().targetScore != undefined){
-        <h3 class="text-lg font-bold mb-2">{{ selectedPlayer()?.Name ?? "" }}, your target is {{ settings().targetScore }}</h3>
-        }@else {
-        <h3 class="text-lg font-bold mb-2">Set score for {{ selectedPlayer()?.Name ?? "" }}</h3>
-        }
-        <input #inputEditedScore type="number" [(ngModel)]="currentEditedPlayerScore" (keyup.enter)="confirmEditScore()"
-            class="input mb-2 w-full" />
-
-        <div class="flex justify-end gap-1 mt-2">
-            <button (click)="confirmEditScore()" class="btn btn-primary">
-                Confirm
-            </button>
-            <form method="dialog">
-                <button class="btn">Close</button>
-            </form>
-        </div>
-
     </div>
 </dialog>
 
@@ -232,5 +169,41 @@
                 <button class="btn btn-outline mt-2 w-full">Close</button>
             </form>
         </div>
+    </div>
+</dialog>
+
+<dialog #dialogBid class="modal">
+    <div class="modal-box">
+        <h2 class="text-lg border-b-2 mb-1">Make your bids</h2>
+
+        <p class="mt-2 mb-2 text-neutral-600">
+            @for (player of players(); track player.Id) {
+                <div>
+                    <div>{{ player.Name }}</div>
+                    <div class="flex flex-row gap-1">
+                    @for (label of bidLabels(); track $index) {
+                        <button (click)="setBid(player.Id, $index)"
+                        class="btn btn-sm btn-outline {{ player.rounds[currentRound()].bid === $index ? 'bg-accent':'' }}">{{$index}}</button>
+                    }
+                    </div>
+                </div>
+            }
+        </p>
+        <form method="dialog">
+            <button class="btn btn-outline mt-2 w-full">Close</button>
+        </form>
+    </div>
+</dialog>
+
+<dialog #dialogScoreRound class="modal">
+    <div class="modal-box">
+        <h2 class="text-lg border-b-2 mb-1">Score round {{ currentRound() }}</h2>
+
+        <p class="mt-2 mb-2 text-neutral-600">
+            Placeholder
+        </p>
+        <form method="dialog">
+            <button class="btn btn-outline mt-2 w-full">Close</button>
+        </form>
     </div>
 </dialog>

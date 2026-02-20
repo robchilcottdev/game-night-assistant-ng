@@ -270,7 +270,7 @@ export class Generic implements OnInit, AfterViewInit {
   loadGameState() {
     let loadedGameState = this.settingsService.loadGameState(SettingsType.Generic) as GameStateGeneric;
     if (loadedGameState){
-      this.currentEditedPlayerScore.set(loadedGameState.currentEditedPlayerScore);
+      this.currentEditedPlayerScore.set(loadedGameState.currentEditedPlayerScore!);
       this.currentPlayerIndex.set(loadedGameState.currentPlayerIndex);
       this.log = loadedGameState.log;
       this.players.set(loadedGameState.players);

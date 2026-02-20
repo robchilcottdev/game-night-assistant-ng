@@ -1,8 +1,7 @@
 import { Component, signal, computed, ElementRef, ViewChild, OnInit, AfterViewInit, inject } from '@angular/core';
 import { DatePipe } from '@angular/common';
-import { ISkullKingPlayer } from '../../interfaces/player';
+import { ISkullKingPlayer, ISkullKingRound } from '../../interfaces/player';
 import { ILogItem } from '../../interfaces/logItem';
-import { PlayDirection, AvailableTriggersGeneric } from '../../interfaces/enums';
 import { FormsModule } from '@angular/forms';
 import { Dock } from "../../components/dock/dock";
 import { SettingsService } from '../../services/settings-service';
@@ -19,41 +18,57 @@ import { GameStateSkullKing } from '../../interfaces/game-state';
   styleUrl: './skull-king.css',
 })
 
-export class Generic implements OnInit, AfterViewInit {
+export class SkullKing implements OnInit, AfterViewInit {
   // services
   protected readonly settingsService = inject(SettingsService);
   protected readonly triggerService = inject(TriggerService);
   protected readonly apiService = inject(HaApiService);
 
   // html elements
-  @ViewChild('dialogEditName') dialogEditName!: ElementRef;
   @ViewChild('dialogInfo') dialogInfo!: ElementRef;
   @ViewChild('dialogAddPlayer') dialogAddPlayer!: ElementRef;
   @ViewChild('inputAddName') inputAddName!: ElementRef;
-  @ViewChild('inputEditName') inputEditName!: ElementRef;
-  @ViewChild('dialogEditScore') dialogEditScore!: ElementRef;
-  @ViewChild('inputEditedScore') inputEditedScore!: ElementRef;
-  @ViewChild('inputModifyScoreAmount') inputModifyScoreAmount!: ElementRef;
   @ViewChild('dialogSettings') dialogSettings!: ElementRef;
   @ViewChild('dialogScriptSettings') dialogScriptSettings!: ElementRef;
   @ViewChild('dialogLeaderboard') dialogLeaderboard!: ElementRef;
   @ViewChild('dialogLog') dialogLog!: ElementRef;
+  @ViewChild('dialogBid') dialogBid!: ElementRef;
+  @ViewChild('dialogScoreRound') dialogScoreRound!: ElementRef;
 
   // variables
   protected log: ILogItem[] = [];
   protected players = signal<ISkullKingPlayer[]>([]);
   protected newPlayerId = 0;
-  protected currentPlayerIndex = signal(0);
-  protected selectedPlayerId = signal(0);
-  protected playDirection = signal<PlayDirection>(PlayDirection.Clockwise);
-  protected modifyScoreAmount = signal(1);
-  protected settingsType: SettingsType = SettingsType.Generic;
+  protected currentRound = signal(1);
+  protected settingsType: SettingsType = SettingsType.SkullKing;
   protected settings = signal(this.settingsService.defaultSettings(this.settingsType) as ISettingsSkullKing);
+  protected selectedPlayerId = signal(0);
 
-  // computed
   protected selectedPlayer = computed(() => {
     return this.players().find(p => p.Id === this.selectedPlayerId());
   });
+
+  protected showBidButton = computed(() => {
+    if (this.players().length > 0 && this.players()[0].rounds != null) {
+      if (this.players()[0].rounds[this.currentRound()-1].bidSet === false) {
+        return true;
+      }
+    }
+    return false;
+  });
+
+  protected showScoreRoundButton = computed(() => {
+    if (this.players().length > 0 && this.players()[0].rounds != null) {
+      if (this.players()[0].rounds[this.currentRound()-1].complete === true) {
+        return true;
+      }
+    }
+    return false;
+  });
+
+  protected bidLabels = computed(() => {
+    return Array<number>(this.currentRound() + 1);
+  })
 
   // lifecycle hooks
   ngOnInit(): void {
@@ -65,23 +80,20 @@ export class Generic implements OnInit, AfterViewInit {
     this.dialogSettings.nativeElement.showModal();
   }
 
-  // Open dialogs
-  editName(playerId: number) {
-    this.selectedPlayerId.set(playerId);
-    this.dialogEditName.nativeElement.showModal();
-  }
-
   addPlayer() {
     this.dialogAddPlayer.nativeElement.showModal();
   }
 
-  editScore(playerId: number) {
-    this.selectedPlayerId.set(playerId);
-    this.dialogEditScore.nativeElement.showModal();
-  }
-    
   showLeaderboard() {
     this.dialogLeaderboard.nativeElement.showModal();
+  }
+
+  showMakeBid(){
+    this.dialogBid.nativeElement.showModal();
+  }
+
+  showScoreRound(){
+    this.dialogScoreRound.nativeElement.showModal();
   }
 
   // Helpers
@@ -89,127 +101,45 @@ export class Generic implements OnInit, AfterViewInit {
     const name = this.inputAddName.nativeElement.value;
     if (name.length === 0) return;
 
+    let newPlayer = { 
+        Id: this.newPlayerId + 1,
+        Name: name,
+        Score: 0,
+        Active: true,
+        IsStartingPlayer: false,
+        rounds: [] as ISkullKingRound[]
+    } as ISkullKingPlayer;
+
+    for (let i = 0; i < 10; i++) {
+      newPlayer.rounds.push({ 
+        bid: 0,
+        bidSet: false,
+        made: 0,
+        bidPoints: 0,
+        bonusPoints: 0,
+        started: false,
+        complete: false
+      } as ISkullKingRound);
+    }
+
+    newPlayer.rounds[0].started = true;
+
     this.players.update(values => {
-      return [...values, { Id: this.newPlayerId + 1, Name: name, Score: this.settings().startingScore ?? 0, Active: true, IsStartingPlayer: false }];
+      return [...values, newPlayer]
     });
     this.log.push({ DateStamp: new Date(), Text: `Added player ${name}` });
     this.newPlayerId++;
     this.dialogAddPlayer.nativeElement.close();
     this.inputAddName.nativeElement.value = "";
 
-    this.triggerService.runTrigger(AvailableTriggersGeneric.PlayerAdded);
     this.saveGameState();
   }
 
-  selectPlayer(playerId: number) {
+  setBid(playerId: number, bidAmount: number) {
     this.selectedPlayerId.set(playerId);
-    this.currentPlayerIndex.set(this.players().findIndex(p => p.Id === playerId));
-    this.log.push({ DateStamp: new Date(), Text: `It's your turn, ${this.players()[this.currentPlayerIndex()].Name}` });
-    this.saveGameState();
-  }
 
-  confirmEditName() {
-    if (this.inputEditName.nativeElement.value === "") return;
-    this.log.push({ DateStamp: new Date(), Text: `${this.selectedPlayer()!.Name} changed name to ${this.inputEditName.nativeElement.value}` });
-    this.selectedPlayer()!.Name = this.inputEditName.nativeElement.value;
-    this.dialogEditName.nativeElement.close();
-    this.inputEditName.nativeElement.value = "";
-    this.saveGameState();
-  }
-
-  confirmEditScore() {
-    this.dialogEditScore.nativeElement.close();
-
-    const previousScore = this.selectedPlayer()!.Score;
-    let thisScore = parseInt(this.inputEditedScore.nativeElement.value);
-
-    if (!this.settings().allowNegativeScores && thisScore < 0) thisScore = 0;
-
-    this.selectedPlayer()!.Score = thisScore;
-    this.log.push({ DateStamp: new Date(), Text: `${this.selectedPlayer()!.Name} score changed to ${thisScore}` });
-
-    this.modifyScoreAmount.set(0);
-
-    if (thisScore === previousScore) this.triggerService.runTrigger(AvailableTriggersGeneric.ZeroScored);
-    if (thisScore > previousScore) this.triggerService.runTrigger(AvailableTriggersGeneric.ScoreIncrease);
-    if (thisScore < previousScore) this.triggerService.runTrigger(AvailableTriggersGeneric.ScoreDecrease);
-   
-    this.saveGameState();
-
-    if (this.settings().autoAdvanceOnScoreUpdate) {
-      return this.advanceTurn();
-    }
-  }
-
-  deletePlayer(playerId: number) {
-    let players = [...this.players()];
-    let playerToDelete = players.find(p => p.Id === playerId);
-    this.log.push({ DateStamp: new Date(), Text: playerToDelete?.Active ? `Goodbye, ${playerToDelete?.Name}!` : `${playerToDelete?.Name} is back!` });
-    playerToDelete!.Active = !playerToDelete!.Active;
-    this.players.set(players);
-    
-    this.saveGameState();
-
-    this.triggerService.runTrigger(AvailableTriggersGeneric.PlayerRemoved);
-  }
-
-  setStartingPlayer(playerId: number) {
-    let players = [...this.players()];
-    players.forEach(p => p.IsStartingPlayer = false);
-    let player = players.find(p => p.Id === playerId);
-    player!.IsStartingPlayer = true;
-    this.log.push({ DateStamp: new Date(), Text: `${player?.Name} was set as starting player` });
-    this.players.set(players);
-    this.currentPlayerIndex.set(this.players().findIndex(p => p.Id === playerId));
-    this.dialogEditName.nativeElement.close();
-
-    this.saveGameState();
-
-    this.triggerService.runTrigger(AvailableTriggersGeneric.FirstPlayerSelected);
-  }
-
-  changeDirection() {
-    if (this.playDirection() === PlayDirection.Clockwise) {
-      this.log.push({ DateStamp: new Date(), Text: `Play direction changed to anti-clockwise` });
-      this.playDirection.set(PlayDirection.Anticlockwise);
-    } else {
-      this.log.push({ DateStamp: new Date(), Text: `Play direction changed to clockwise` });
-      this.playDirection.set(PlayDirection.Clockwise);
-    }
-    this.saveGameState();
-  }
-
-  randomiseTurn() {
-    this.log.push({ DateStamp: new Date(), Text: `Randomising starting player...` });
-    this.currentPlayerIndex.set(Math.floor(Math.random() * this.players().length));
-    this.setStartingPlayer(this.players()[this.currentPlayerIndex()].Id);
-    this.saveGameState();
-  }
-
-  advanceTurn() {
-    do {
-      if (this.playDirection() === PlayDirection.Clockwise) {
-        if (this.currentPlayerIndex() === this.players().length - 1) {
-          this.currentPlayerIndex.set(0);
-        } else {
-          this.currentPlayerIndex.update(value => value + 1);
-        }
-      } else { // anti-clockwise
-        if (this.currentPlayerIndex() === 0) {
-          this.currentPlayerIndex.set(this.players().length - 1);
-        } else {
-          this.currentPlayerIndex.update(value => value - 1);
-        }
-      }
-    } while (!this.players()[this.currentPlayerIndex()].Active); // advance turn until we're not on a deleted/de-activated player
-    this.log.push({ DateStamp: new Date(), Text: `It's your turn, ${this.players()[this.currentPlayerIndex()].Name}` });
-
-    this.saveGameState();
-
-    if (this.settings().autoOpenEditScoreOnAdvance) {
-      this.selectedPlayerId.set(this.players()[this.currentPlayerIndex()].Id);
-      this.editScore(this.selectedPlayerId());
-    }
+    this.selectedPlayer()!.rounds[this.currentRound()].bidSet = true;
+    this.selectedPlayer()!.rounds[this.currentRound()].bid = bidAmount;
   }
 
   clearLog() {
@@ -243,24 +173,22 @@ export class Generic implements OnInit, AfterViewInit {
   }
 
   loadGameState() {
-    let loadedGameState = this.settingsService.loadGameState(SettingsType.Generic) as GameStateSkullKing;
+    let loadedGameState = this.settingsService.loadGameState(SettingsType.SkullKing) as GameStateSkullKing;
     if (loadedGameState){
-      this.currentPlayerIndex.set(loadedGameState.currentPlayerIndex);
       this.log = loadedGameState.log;
       this.players.set(loadedGameState.players);
-      this.selectedPlayerId.set(loadedGameState.selectedPlayerId);
     }
   }
 
   saveGameState() {
     let gameState : GameStateSkullKing = {
-      currentPlayerIndex: this.currentPlayerIndex(),
+      currentPlayerIndex: 0,
       log: this.log,
       players: this.players(),
-      selectedPlayerId: this.selectedPlayerId()
+      selectedPlayerId: 0
     };
 
-    this.settingsService.saveGameState(SettingsType.SkullKing, gameState);
+    //this.settingsService.saveGameState(SettingsType.SkullKing, gameState);
   }
 
   // Dock buttons
